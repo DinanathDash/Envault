@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 
 import { useEnvaultStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
-import { signInWithGoogle } from "@/app/actions"
+import { signInWithGoogle, signInWithPassword, signUp } from "@/app/actions"
 import {
     Card,
     CardContent,
@@ -46,38 +46,33 @@ export function AuthForm() {
 
     async function onLogin(data: AuthValues) {
         setIsLoading(true)
-        // Simulate API call
-        setTimeout(() => {
+        const formData = new FormData()
+        formData.append("email", data.email)
+        formData.append("password", data.password)
+
+        const result = await signInWithPassword(formData)
+
+        if (result?.error) {
+            toast.error(result.error)
             setIsLoading(false)
-            const namePart = data.email.split('@')[0]
-            login({
-                firstName: namePart,
-                lastName: "",
-                username: namePart,
-                email: data.email,
-                authProvider: 'email',
-            })
-            toast.success("Successfully authenticated!")
-            router.push("/dashboard")
-        }, 1500)
+        }
     }
 
     async function onSignup(data: AuthValues) {
         setIsLoading(true)
-        // Simulate API call
-        setTimeout(() => {
+        const formData = new FormData()
+        formData.append("email", data.email)
+        formData.append("password", data.password)
+
+        const result = await signUp(formData)
+
+        if (result?.error) {
+            toast.error(result.error)
             setIsLoading(false)
-            const namePart = data.email.split('@')[0]
-            login({
-                firstName: namePart,
-                lastName: "",
-                username: namePart,
-                email: data.email,
-                authProvider: 'email',
-            })
-            toast.success("Account created successfully!")
-            router.push("/settings")
-        }, 1500)
+        } else {
+            toast.success("Check your email to confirm your account")
+            setIsLoading(false)
+        }
     }
 
     return (

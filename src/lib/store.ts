@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid'
-import { encrypt, decrypt } from './encryption'
 
 export type EnvironmentVariable = {
     id: string
@@ -13,7 +12,6 @@ export type EnvironmentVariable = {
 export type Project = {
     id: string
     name: string
-    description: string
     variables: EnvironmentVariable[]
     createdAt: string
 }
@@ -24,7 +22,8 @@ interface EnvaultState {
     login: (user: User) => void
     logout: () => void
     updateUser: (updates: Partial<User>) => void
-    addProject: (name: string, description: string) => string
+    setProjects: (projects: Project[]) => void
+    addProject: (name: string) => string
     deleteProject: (id: string) => void
     addVariable: (projectId: string, variable: Omit<EnvironmentVariable, 'id'>) => void
     deleteVariable: (projectId: string, variableId: string) => void
@@ -53,12 +52,12 @@ export const useEnvaultStore = create<EnvaultState>()(
                     user: state.user ? { ...state.user, ...updates } : null,
                 })),
             deleteAccount: () => set({ user: null, projects: [] }),
+            setProjects: (projects) => set({ projects }),
 
-            addProject: (name, description) => {
+            addProject: (name) => {
                 const newProject: Project = {
                     id: uuidv4(),
                     name,
-                    description,
                     variables: [],
                     createdAt: new Date().toISOString(),
                 }
@@ -112,24 +111,6 @@ export const useEnvaultStore = create<EnvaultState>()(
         }),
         {
             name: 'envault-storage',
-            storage: {
-                getItem: (name: string) => {
-                    const str = localStorage.getItem(name);
-                    if (!str) return null;
-                    try {
-                        const decrypted = decrypt(str);
-                        if (!decrypted) return null;
-                        return JSON.parse(decrypted);
-                    } catch {
-                        return null;
-                    }
-                },
-                setItem: (name: string, value: unknown) => {
-                    const encrypted = encrypt(JSON.stringify(value));
-                    localStorage.setItem(name, encrypted);
-                },
-                removeItem: (name: string) => localStorage.removeItem(name),
-            },
         }
     )
 )

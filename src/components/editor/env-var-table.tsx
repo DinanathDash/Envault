@@ -19,8 +19,20 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { EnvironmentVariable, useEnvaultStore } from "@/lib/store"
 import { VariableDialog } from "./variable-dialog"
+import { deleteVariable as deleteVariableAction } from "@/app/project-actions"
+import { useRouter } from "next/navigation"
 
 interface EnvVarTableProps {
     projectId: string
@@ -28,8 +40,10 @@ interface EnvVarTableProps {
 }
 
 export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
-    const deleteVariable = useEnvaultStore((state) => state.deleteVariable)
     const [editingVariable, setEditingVariable] = React.useState<EnvironmentVariable | null>(null)
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+    const [variableToDelete, setVariableToDelete] = React.useState<string | null>(null)
+    const router = useRouter()
 
     // Local state for visibility toggles map: variableId -> boolean (true = visible)
     const [visibleSecrets, setVisibleSecrets] = React.useState<Record<string, boolean>>({})
@@ -43,11 +57,23 @@ export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
         toast.success("Copied to clipboard")
     }
 
-    const handleDelete = (id: string) => {
-        if (confirm("Are you sure you want to delete this variable?")) {
-            deleteVariable(projectId, id)
-            toast.success("Variable deleted")
+    const handleDeleteClick = (id: string) => {
+        setVariableToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const handleDeleteConfirm = async () => {
+        if (!variableToDelete) return
+
+        const result = await deleteVariableAction(variableToDelete, projectId)
+        if (result.error) {
+            toast.error(result.error)
+            return
         }
+        toast.success("Variable deleted")
+        setDeleteDialogOpen(false)
+        setVariableToDelete(null)
+        router.refresh()
     }
 
     return (
@@ -77,7 +103,7 @@ export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
                                         <TableCell>
                                             <div className="flex items-center space-x-2 container-type-normal">
                                                 <div className="font-mono text-sm break-all line-clamp-1 max-w-[400px]">
-                                                    {isVisible ? variable.value : "•".repeat(Math.min(variable.value.length, 20) || 8)}
+                                                    {isVisible ? variable.value : "••••••••••••••••"}
                                                 </div>
                                                 <Button
                                                     variant="ghost"
@@ -116,16 +142,18 @@ export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => copyToClipboard(variable.key)}>
+                                                        <Copy className="w-4 h-4 mr-2" />
                                                         Copy Key
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => copyToClipboard(variable.value)}>
+                                                        <Copy className="w-4 h-4 mr-2" />
                                                         Copy Value
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => setEditingVariable(variable)}>
                                                         <Pencil className="w-4 h-4 mr-2" />
                                                         Edit
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(variable.id)}>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDeleteClick(variable.id)}>
                                                         <Trash2 className="w-4 h-4 mr-2" />
                                                         Delete
                                                     </DropdownMenuItem>
@@ -146,6 +174,26 @@ export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
                 open={!!editingVariable}
                 onOpenChange={(open) => !open && setEditingVariable(null)}
             />
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Variable</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this variable? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteConfirm}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }

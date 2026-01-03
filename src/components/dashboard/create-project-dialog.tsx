@@ -21,12 +21,10 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useEnvaultStore } from "@/lib/store"
+import { createProject } from "@/app/project-actions"
 
 const projectSchema = z.object({
     name: z.string().min(1, "Project name is required"),
-    description: z.string().optional(),
 })
 
 type ProjectValues = z.infer<typeof projectSchema>
@@ -34,7 +32,6 @@ type ProjectValues = z.infer<typeof projectSchema>
 export function CreateProjectDialog() {
     const [open, setOpen] = React.useState(false)
     const router = useRouter()
-    const addProject = useEnvaultStore((state) => state.addProject)
 
     const {
         register,
@@ -46,13 +43,17 @@ export function CreateProjectDialog() {
     })
 
     async function onSubmit(data: ProjectValues) {
-        // Simulate async operation
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const projectId = addProject(data.name, data.description || "")
+        const result = await createProject(data.name)
+
+        if (result.error) {
+            toast.error(result.error)
+            return
+        }
+
         toast.success("Project created successfully")
         setOpen(false)
         reset()
-        router.push(`/project/${projectId}`)
+        router.push(`/project/${result.data?.id}`)
     }
 
     return (
@@ -77,14 +78,6 @@ export function CreateProjectDialog() {
                         {errors.name && (
                             <p className="text-xs text-destructive">{errors.name.message}</p>
                         )}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description (Optional)</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="Production environment variables..."
-                            {...register("description")}
-                        />
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isSubmitting}>

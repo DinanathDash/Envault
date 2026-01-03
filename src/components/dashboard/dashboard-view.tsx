@@ -15,16 +15,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { signOut } from "@/app/actions"
 
 export default function DashboardPage() {
     const projects = useEnvaultStore((state) => state.projects)
     const { user, logout } = useEnvaultStore()
-    const router = useRouter()
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         logout()
-        router.push("/")
+        await signOut()
     }
 
     return (
@@ -41,8 +40,16 @@ export default function DashboardPage() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="rounded-full">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <User className="w-5 h-5 text-primary" />
+                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                                        {user?.avatar ? (
+                                            <img
+                                                src={user.avatar}
+                                                alt={user.firstName || "User"}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <User className="w-5 h-5 text-primary" />
+                                        )}
                                     </div>
                                 </Button>
                             </DropdownMenuTrigger>
@@ -90,7 +97,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,280px))] gap-6">
                         {projects.map((project) => (
                             <ProjectCard key={project.id} project={project} />
                         ))}

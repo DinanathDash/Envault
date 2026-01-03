@@ -68,6 +68,22 @@
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none;
   mix-blend-mode: normal;
+}
+
+@layer utilities {
+
+  /* Custom Scrollbar - Hidden as per user request */
+  .custom-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
 }

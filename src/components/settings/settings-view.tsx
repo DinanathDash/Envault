@@ -11,6 +11,16 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Switch } from "@/components/ui/switch"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function SettingsView() {
     const router = useRouter()
@@ -24,6 +34,7 @@ export default function SettingsView() {
     const [lastName, setLastName] = useState("")
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
     // Initialize state from user store
     useEffect(() => {
@@ -44,12 +55,15 @@ export default function SettingsView() {
         toast.success("Profile updated successfully")
     }
 
-    const handleDeleteAccount = () => {
-        if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-            deleteAccount()
-            toast.error("Account deleted")
-            router.push("/")
-        }
+    const handleDeleteAccountClick = () => {
+        setDeleteDialogOpen(true)
+    }
+
+    const handleDeleteAccountConfirm = () => {
+        deleteAccount()
+        toast.error("Account deleted")
+        setDeleteDialogOpen(false)
+        router.push("/")
     }
 
     const handleLogout = () => {
@@ -63,7 +77,7 @@ export default function SettingsView() {
                 <div className="container mx-auto py-4 px-4 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft style={{ width: '24px', height: '24px' }} />
                         </Button>
                         <h1 className="text-xl font-semibold">Settings</h1>
                     </div>
@@ -243,7 +257,7 @@ export default function SettingsView() {
                                         </p>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button variant="destructive" onClick={handleDeleteAccount}>Delete Account</Button>
+                                        <Button variant="destructive" onClick={handleDeleteAccountClick}>Delete Account</Button>
                                     </CardFooter>
                                 </Card>
                             </div>
@@ -251,6 +265,26 @@ export default function SettingsView() {
                     </div>
                 </div>
             </main>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Account</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your projects and environment variables.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteAccountConfirm}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete Account
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

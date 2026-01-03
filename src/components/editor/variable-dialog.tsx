@@ -21,6 +21,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { EnvironmentVariable, useEnvaultStore } from "@/lib/store"
 import { toast } from "sonner"
+import { addVariable as addVariableAction, updateVariable as updateVariableAction } from "@/app/project-actions"
+import { useRouter } from "next/navigation"
 
 const variableSchema = z.object({
     key: z.string().min(1, "Key is required").regex(/^[a-zA-Z0-9_]+$/, "Only alphanumeric characters and underscores"),
@@ -44,9 +46,7 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
     const setOpen = isControlled ? onOpenChange! : setInternalOpen
-
-    const addVariable = useEnvaultStore((state) => state.addVariable)
-    const updateVariable = useEnvaultStore((state) => state.updateVariable)
+    const router = useRouter()
 
     const {
         register,
@@ -77,14 +77,27 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
 
     async function onSubmit(data: VariableValues) {
         if (existingVariable) {
-            updateVariable(projectId, existingVariable.id, data)
+            const result = await updateVariableAction(existingVariable.id, projectId, {
+                key: data.key,
+                value: data.value,
+                is_secret: data.isSecret,
+            })
+            if (result.error) {
+                toast.error(result.error)
+                return
+            }
             toast.success("Variable updated")
         } else {
-            addVariable(projectId, data)
+            const result = await addVariableAction(projectId, data.key, data.value, data.isSecret)
+            if (result.error) {
+                toast.error(result.error)
+                return
+            }
             toast.success("Variable created")
         }
         setOpen(false)
         if (!existingVariable) reset()
+        router.refresh()
     }
 
     return (
