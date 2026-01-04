@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { AuthSync } from '@/components/auth/auth-sync'
 import { ProjectsSync } from '@/components/dashboard/projects-sync'
 
 export default async function DashboardLayout({
@@ -17,7 +16,6 @@ export default async function DashboardLayout({
 
     return (
         <>
-            <AuthSync user={user} />
             <ProjectsSync />
             {children}
         </>

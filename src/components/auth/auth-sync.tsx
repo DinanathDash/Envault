@@ -16,7 +16,7 @@ export function AuthSync({ user }: { user: User }) {
                 username: meta.username || user.email?.split('@')[0] || '',
                 email: user.email!,
                 avatar: meta.avatar_url,
-                authProvider: user.app_metadata.provider === 'google' ? 'google' : 'email',
+                authProviders: user.identities?.map((id) => id.provider) || [],
             })
         }
     }, [user, login])

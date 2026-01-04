@@ -4,7 +4,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Loader2, Plus, Save } from "lucide-react"
+import { Loader2, Plus, Save, CheckCircle2, Info, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,12 +34,13 @@ type VariableValues = z.infer<typeof variableSchema>
 interface VariableDialogProps {
     projectId: string
     existingVariable?: EnvironmentVariable
+    existingVariables?: EnvironmentVariable[]
     trigger?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
 }
 
-export function VariableDialog({ projectId, existingVariable, trigger, open: controlledOpen, onOpenChange }: VariableDialogProps) {
+export function VariableDialog({ projectId, existingVariable, existingVariables = [], trigger, open: controlledOpen, onOpenChange }: VariableDialogProps) {
     const [internalOpen, setInternalOpen] = React.useState(false)
 
     const isControlled = controlledOpen !== undefined
@@ -62,6 +63,22 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
         },
     })
 
+    const key = watch("key")
+    const value = watch("value")
+
+    const status = React.useMemo(() => {
+        if (existingVariable || !key) return null
+
+        const collision = existingVariables?.find(v => v.key === key)
+        if (!collision) return { type: 'new', message: 'New Variable' }
+
+        if (collision.value === value) {
+            return { type: 'skip', message: 'Variable exists with same value' }
+        }
+
+        return { type: 'update', message: 'Variable exists (Will Update)' }
+    }, [key, value, existingVariable, existingVariables])
+
     // Update form if existingVariable changes
     React.useEffect(() => {
         if (existingVariable) {
@@ -71,6 +88,13 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
             reset({ key: "", value: "" })
         }
     }, [existingVariable, setValue, reset])
+
+    // Reset form when dialog closes
+    React.useEffect(() => {
+        if (!open) {
+            reset({ key: "", value: "" })
+        }
+    }, [open, reset])
 
     async function onSubmit(data: VariableValues) {
         if (existingVariable) {
@@ -85,12 +109,29 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
             }
             toast.success("Variable updated")
         } else {
-            const result = await addVariableAction(projectId, data.key, data.value, true)
-            if (result.error) {
-                toast.error(result.error)
-                return
+            const collision = existingVariables?.find(v => v.key === data.key)
+
+            if (collision) {
+                // Upsert/Update existing
+                const result = await updateVariableAction(collision.id, projectId, {
+                    key: data.key,
+                    value: data.value,
+                    is_secret: true,
+                })
+                if (result.error) {
+                    toast.error(result.error)
+                    return
+                }
+                toast.success("Variable updated")
+            } else {
+                // Create new
+                const result = await addVariableAction(projectId, data.key, data.value, true)
+                if (result.error) {
+                    toast.error(result.error)
+                    return
+                }
+                toast.success("Variable created")
             }
-            toast.success("Variable created")
         }
         setOpen(false)
         if (!existingVariable) reset()
@@ -137,10 +178,32 @@ export function VariableDialog({ projectId, existingVariable, trigger, open: con
                             <p className="text-xs text-destructive">{errors.value.message}</p>
                         )}
                     </div>
+
+                    {status && (
+                        <div className={`flex items-center gap-2 p-2 rounded-md text-sm font-medium ${status.type === 'new'
+                            ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                            : status.type === 'update'
+                                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                            }`}>
+                            {status.type === 'new' && <CheckCircle2 className="w-4 h-4" />}
+                            {status.type === 'update' && <Info className="w-4 h-4" />}
+                            {status.type === 'skip' && <AlertCircle className="w-4 h-4" />}
+                            <span>{status.message}</span>
+                        </div>
+                    )}
+
                     <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || status?.type === 'skip'}>
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {existingVariable ? "Save Changes" : "Add Variable"}
+                            {existingVariable
+                                ? "Save Changes"
+                                : status?.type === 'update'
+                                    ? "Update Variable"
+                                    : status?.type === 'skip'
+                                        ? "No Changes"
+                                        : "Add Variable"
+                            }
                         </Button>
                     </DialogFooter>
                 </form>

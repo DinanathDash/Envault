@@ -25,6 +25,27 @@ export async function signInWithGoogle() {
     }
 }
 
+export async function signInWithGithub() {
+    const supabase = await createClient()
+    const origin = (await headers()).get('origin')
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+            redirectTo: `${origin}/auth/callback`,
+        },
+    })
+
+    if (error) {
+        console.error(error)
+        redirect('/error')
+    }
+
+    if (data.url) {
+        redirect(data.url)
+    }
+}
+
 export async function signInWithPassword(formData: FormData) {
     const email = formData.get('email') as string
     const password = formData.get('password') as string

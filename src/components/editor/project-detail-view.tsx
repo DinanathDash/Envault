@@ -57,6 +57,7 @@ export default function ProjectDetailView({ project }: ProjectDetailViewProps) {
                         />
                         <VariableDialog
                             projectId={projectId}
+                            existingVariables={project.variables}
                             trigger={
                                 <Button variant="default">
                                     <Plus className="w-4 h-4 mr-2" />

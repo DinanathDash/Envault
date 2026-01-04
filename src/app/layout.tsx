@@ -2,17 +2,23 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthSync } from "@/components/auth/auth-sync";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Envault - Secure Environment Variables",
   description: "A premium, secure vault for your environment variables.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -32,6 +38,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          {user && <AuthSync user={user} />}
         </ThemeProvider>
       </body>
     </html>

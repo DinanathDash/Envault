@@ -171,6 +171,7 @@ export function EnvVarTable({ projectId, variables }: EnvVarTableProps) {
             <VariableDialog
                 projectId={projectId}
                 existingVariable={editingVariable || undefined}
+                existingVariables={variables}
                 open={!!editingVariable}
                 onOpenChange={(open) => !open && setEditingVariable(null)}
             />
