@@ -1,5 +1,5 @@
 -- Create the encryption_keys table
-create table encryption_keys (
+create table if not exists encryption_keys (
   id uuid primary key default gen_random_uuid(),
   encrypted_key text not null, -- The Data Key encrypted by the Master Key
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
@@ -14,10 +14,14 @@ create table encryption_keys (
 -- we will let the app handle the first initialization or use a specific script.
 -- For now, we just create the table.)
 
--- Add key_id to secrets table
-alter table secrets 
-add column key_id uuid references encryption_keys(id);
+-- Add key_id to secrets table if it doesn't exist
+do $$
+begin
+    if not exists (select 1 from information_schema.columns where table_name = 'secrets' and column_name = 'key_id') then
+        alter table secrets add column key_id uuid references encryption_keys(id);
+        create index idx_secrets_key_id on secrets(key_id);
+    end if;
+end $$;
 
--- Create index for faster lookups
-create index idx_secrets_key_id on secrets(key_id);
-create index idx_encryption_keys_status on encryption_keys(status);
+-- Create index for encryption_keys status if not exists
+create index if not exists idx_encryption_keys_status on encryption_keys(status);

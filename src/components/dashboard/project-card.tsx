@@ -89,7 +89,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     </CardHeader>
                     <CardFooter className="absolute bottom-0 w-full bg-muted/20 border-t p-3">
                         <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-                            <span>{project.variables.length} variables</span>
+                            <span>{project.secretCount ?? project.variables.length} variables</span>
                             <span>{formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}</span>
                         </div>
                     </CardFooter>

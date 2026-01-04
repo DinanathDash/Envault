@@ -16,12 +16,8 @@ export function ProjectsSync() {
                     id: project.id,
                     name: project.name,
                     createdAt: project.created_at,
-                    variables: project.secrets?.map((secret: any) => ({
-                        id: secret.id,
-                        key: secret.key,
-                        value: secret.value,
-                        isSecret: secret.is_secret,
-                    })) || [],
+                    variables: [], // Optimized: Empty array for dashboard list
+                    secretCount: project.secrets?.[0]?.count || 0,
                 }))
                 setProjects(projects)
             }

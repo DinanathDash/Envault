@@ -12,6 +12,7 @@ export type Project = {
     id: string
     name: string
     variables: EnvironmentVariable[]
+    secretCount: number
     createdAt: string
 }
 
@@ -57,6 +58,7 @@ export const useEnvaultStore = create<EnvaultState>()(
                 id: uuidv4(),
                 name,
                 variables: [],
+                secretCount: 0,
                 createdAt: new Date().toISOString(),
             }
             set((state) => ({
@@ -78,6 +80,7 @@ export const useEnvaultStore = create<EnvaultState>()(
                                 ...p.variables,
                                 { ...variable, id: uuidv4() },
                             ],
+                            secretCount: (p.secretCount || 0) + 1
                         }
                         : p
                 ),
@@ -89,6 +92,7 @@ export const useEnvaultStore = create<EnvaultState>()(
                         ? {
                             ...p,
                             variables: p.variables.filter((v) => v.id !== variableId),
+                            secretCount: Math.max(0, (p.secretCount || 0) - 1)
                         }
                         : p
                 ),

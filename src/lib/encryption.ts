@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { createClient } from './supabase/server' // We need server client to fetch keys
+import { redis } from './redis'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
@@ -37,6 +38,18 @@ async function getDataKey(keyId: string): Promise<Buffer> {
         return keyCache.get(keyId)!
     }
 
+    // Check Redis first
+    try {
+        const cachedHex = await redis.get<string>(`key:${keyId}`)
+        if (cachedHex) {
+            const keyBuffer = Buffer.from(cachedHex, ENCODING)
+            keyCache.set(keyId, keyBuffer)
+            return keyBuffer
+        }
+    } catch (e) {
+        console.warn('Redis Cache Miss/Error:', e)
+    }
+
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('encryption_keys')
@@ -53,6 +66,13 @@ async function getDataKey(keyId: string): Promise<Buffer> {
     const masterKey = getMasterKey()
     const unwrappedKey = decryptWithKey(data.encrypted_key, masterKey)
 
+    // Cache in Redis (24 hours)
+    try {
+        await redis.set(`key:${keyId}`, unwrappedKey, { ex: 86400 })
+    } catch (e) {
+        console.warn('Failed to set Redis cache:', e)
+    }
+
     // Convert hex string back to buffer
     const keyBuffer = Buffer.from(unwrappedKey, ENCODING)
 
@@ -68,6 +88,22 @@ async function getDataKey(keyId: string): Promise<Buffer> {
  * we MUST have an active key in the DB.
  */
 async function getActiveKey(): Promise<{ id: string; key: Buffer }> {
+    // Check Redis first for Active Key ID and Value
+    try {
+        const cachedActiveKeyArg = await redis.get<string>('active_key')
+        if (cachedActiveKeyArg) {
+            // Format: "id:hexValue"
+            const [cachedId, cachedHex] = cachedActiveKeyArg.split(':')
+            if (cachedId && cachedHex) {
+                const keyBuffer = Buffer.from(cachedHex, ENCODING)
+                keyCache.set(cachedId, keyBuffer)
+                return { id: cachedId, key: keyBuffer }
+            }
+        }
+    } catch (e) {
+        console.warn('Redis Cache Miss/Error:', e)
+    }
+
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('encryption_keys')
@@ -81,6 +117,14 @@ async function getActiveKey(): Promise<{ id: string; key: Buffer }> {
 
     const masterKey = getMasterKey()
     const unwrappedKey = decryptWithKey(data.encrypted_key, masterKey)
+
+    // Cache in Redis (1 hour aka 3600 seconds)
+    try {
+        await redis.set('active_key', `${data.id}:${unwrappedKey}`, { ex: 3600 })
+    } catch (e) {
+        console.warn('Failed to set Redis cache:', e)
+    }
+
     const keyBuffer = Buffer.from(unwrappedKey, ENCODING)
 
     // Cache it

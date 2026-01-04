@@ -65,6 +65,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 isSecret: secret.is_secret,
             }
         }) || [],
+        secretCount: project.secrets?.length || 0,
     }
 
     return <ProjectDetailView project={transformedProject} />
