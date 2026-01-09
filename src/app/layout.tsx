@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   keywords: ["environment variables", "security", "secrets management", "developer tools", "encryption"],
   authors: [{ name: "Envault Team" }],
   creator: "Envault",
+  verification: {
+    google: "3TJJp9KaT8xn84Rn-kxxru-6GnR20ZQQBiPhbtiS2vc",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
