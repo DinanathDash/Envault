@@ -1,19 +1,21 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { AuthForm } from '@/components/auth/auth-form'
-import { AuthLayout } from '@/components/auth/auth-layout'
+import { Navbar } from "@/components/landing/Navbar"
+import { Hero } from "@/components/landing/Hero"
+import { Features } from "@/components/landing/Features"
+import { Footer } from "@/components/landing/Footer"
+import { Scene } from "@/components/landing/Scene"
 
-export default async function Home() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-        redirect('/dashboard')
-    }
-
+export default function LandingPage() {
     return (
-        <AuthLayout>
-            <AuthForm />
-        </AuthLayout>
+        <div className="flex min-h-screen flex-col font-sans selection:bg-primary/20 relative">
+            <Scene />
+            <Navbar />
+            <main className="flex-1">
+                <Hero />
+                <div id="features">
+                    <Features />
+                </div>
+            </main>
+            <Footer />
+        </div>
     )
 }

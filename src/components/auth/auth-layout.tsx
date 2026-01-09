@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react"
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { HeroIllustration } from "@/components/landing/hero-illustration"
+import Link from "next/link"
 
 interface AuthLayoutProps {
     children: React.ReactNode
@@ -16,10 +17,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             </div>
 
             {/* Logo Area - Absolute positioned for consistent visibility */}
-            <div className="absolute top-8 left-8 z-50 flex items-center gap-2">
+            <Link href="/" className="absolute top-8 left-8 z-50 flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ShieldCheck className="w-8 h-8 text-primary" />
                 <h1 className="text-xl font-bold tracking-tight text-primary">Envault</h1>
-            </div>
+            </Link>
 
             {/* LEFT COLUMN: Visuals / Brand */}
             <div className="hidden lg:flex flex-col justify-center p-8 lg:p-12 relative overflow-hidden text-muted-foreground pointer-events-none">
