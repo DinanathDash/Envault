@@ -68,9 +68,13 @@ export default async function RootLayout({
         >
           {children}
           <Toaster />
-          {user && <AuthSync user={user} />}
-          <SessionMonitor />
-          <ReauthDialog />
+          {user && (
+            <>
+              <AuthSync user={user} />
+              <SessionMonitor />
+              <ReauthDialog />
+            </>
+          )}
           <Analytics />
         </ThemeProvider>
       </body>

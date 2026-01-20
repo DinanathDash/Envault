@@ -31,7 +31,7 @@ function Core() {
                 <icosahedronGeometry args={[1, 0]} />
                 <meshStandardMaterial
                     color="#ffffff"
-                    emissive="#4f46e5"
+                    emissive="#d97706"
                     emissiveIntensity={2}
                     roughness={0.1}
                     metalness={1}
@@ -42,7 +42,7 @@ function Core() {
             <mesh ref={glowRef} scale={[1.2, 1.2, 1.2]}>
                 <icosahedronGeometry args={[1, 1]} />
                 <meshStandardMaterial
-                    color="#6366f1"
+                    color="#f59e0b"
                     transparent
                     opacity={0.15}
                     wireframe
@@ -53,7 +53,7 @@ function Core() {
     )
 }
 
-function ShieldRing({ radius, speed, axis = 'x', color = '#818cf8', thickness = 0.05 }: { radius: number, speed: number, axis?: 'x' | 'y' | 'z', color?: string, thickness?: number }) {
+function ShieldRing({ radius, speed, axis = 'x', color = '#fbbf24', thickness = 0.05 }: { radius: number, speed: number, axis?: 'x' | 'y' | 'z', color?: string, thickness?: number }) {
     const ref = useRef<THREE.Mesh>(null)
 
     useFrame((state, delta) => {
@@ -130,7 +130,7 @@ function MovingParticles() {
     return (
         <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
             <dodecahedronGeometry args={[0.2, 0]} />
-            <meshStandardMaterial color="#4f46e5" roughness={0.5} opacity={0.5} transparent />
+            <meshStandardMaterial color="#fcd34d" roughness={0.5} opacity={0.5} transparent />
         </instancedMesh>
     )
 }
@@ -196,9 +196,9 @@ function SceneObjects() {
     return (
         <group ref={groupRef} position={[isMobile ? 0 : 4, 0, 0]}>
             <Core />
-            <ShieldRing radius={2} speed={0.2} axis="x" color="#4f46e5" thickness={0.05} />
-            <ShieldRing radius={2.5} speed={0.15} axis="y" color="#818cf8" thickness={0.03} />
-            <ShieldRing radius={3} speed={0.1} axis="z" color="#c084fc" thickness={0.02} />
+            <ShieldRing radius={2} speed={0.2} axis="x" color="#d97706" thickness={0.05} />
+            <ShieldRing radius={2.5} speed={0.15} axis="y" color="#f59e0b" thickness={0.03} />
+            <ShieldRing radius={3} speed={0.1} axis="z" color="#fbbf24" thickness={0.02} />
         </group>
     )
 }
@@ -211,14 +211,14 @@ export function Scene() {
                 <Suspense fallback={
                     <mesh>
                         <sphereGeometry args={[0.5, 32, 32]} />
-                        <meshBasicMaterial color="#4f46e5" opacity={0.1} transparent />
+                        <meshBasicMaterial color="#fca5a5" opacity={0.1} transparent />
                     </mesh>
                 }>
                     <Environment preset="city" />
 
                     <ambientLight intensity={0.5} />
-                    <pointLight position={[10, 10, 10]} intensity={1.5} color="#4f46e5" />
-                    <pointLight position={[-10, -10, -10]} intensity={1} color="#ec4899" />
+                    <pointLight position={[10, 10, 10]} intensity={1.5} color="#fbbf24" />
+                    <pointLight position={[-10, -10, -10]} intensity={1} color="#f87171" />
 
                     <SceneObjects />
 

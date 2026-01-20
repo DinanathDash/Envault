@@ -38,7 +38,7 @@ export function Navbar() {
         >
             <div className="container h-full flex items-center justify-between px-4 md:px-6 relative z-50">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl" onClick={() => setIsOpen(false)}>
-                    <ShieldCheck className="w-6 h-6 text-primary" />
+                    <ShieldCheck className="w-6 h-6 text-amber-500" />
                     <span>Envault</span>
                 </Link>
 

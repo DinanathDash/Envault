@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import { useReauthStore } from '@/lib/reauth-store'
 
 // 15 minutes in milliseconds
@@ -15,7 +16,14 @@ export function SessionMonitor() {
         sessionStorage.setItem('lastActivity', Date.now().toString())
     }, [])
 
+    const pathname = usePathname()
+    // Exclude landing page and public pages from inactivity monitoring
+    // We only want to lock when the user is actually using the app (dashboard, project, settings)
+    const isPublicPage = pathname === "/" || pathname?.startsWith("/privacy") || pathname?.startsWith("/terms")
+
     useEffect(() => {
+        if (isPublicPage) return
+
         // Initialize activity timestamp
         handleActivity()
 
@@ -45,7 +53,7 @@ export function SessionMonitor() {
             window.removeEventListener('click', handleActivity)
             window.removeEventListener('scroll', handleActivity)
         }
-    }, [handleActivity, setLocked])
+    }, [handleActivity, setLocked, isPublicPage])
 
     return null
 }

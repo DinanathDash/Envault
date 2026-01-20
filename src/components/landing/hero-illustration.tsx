@@ -17,7 +17,7 @@ export function HeroIllustration() {
                 viewBox="0 0 500 500"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-full max-w-[500px] h-auto text-foreground transition-colors duration-300"
+                className="w-full max-w-[500px] h-auto text-amber-500 dark:text-amber-400 transition-colors duration-300"
             >
                 {/* Main geometric paths with animations */}
                 <motion.path

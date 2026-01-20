@@ -27,7 +27,7 @@ export function Hero() {
                         className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.1]"
                     >
                         Secure Your{" "}
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-gradient">
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 dark:from-amber-200 dark:via-yellow-400 dark:to-orange-400 animate-gradient">
                             Secrets
                         </span>
                     </motion.h1>
