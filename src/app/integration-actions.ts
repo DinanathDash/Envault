@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { checkReauthRequired } from '@/lib/auth-check'
 import type { ProjectIntegration, GitHubIntegration } from '@/lib/types/integrations'
 
 /**
@@ -39,7 +40,6 @@ export async function linkProjectToGitHub(
     }
 
     // Check for reauth requirement
-    const { checkReauthRequired } = await import('@/lib/auth-check')
     if (await checkReauthRequired(supabase)) {
         return { error: 'REAUTH_REQUIRED' }
     }
@@ -103,7 +103,6 @@ export async function unlinkProjectFromGitHub(
     }
 
     // Check for reauth requirement
-    const { checkReauthRequired } = await import('@/lib/auth-check')
     if (await checkReauthRequired(supabase)) {
         return { error: 'REAUTH_REQUIRED' }
     }

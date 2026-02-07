@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     // Query project_integrations for matching GitHub repository
     const { data: integration, error: integrationError } = await supabase
         .from('project_integrations')
-        .select('project_id, projects(id, name, user_id)')
+        .select('projects(id, name, user_id)')
         .eq('provider', 'github')
         .eq('owner', owner)
         .eq('repo_name', repo)
@@ -92,19 +92,17 @@ export async function POST(request: Request) {
         }
     }
 
-    // Check if has access to shared secrets
+    // Check if has access to shared secrets in this project
     if (!hasAccess) {
-        const { data: secretShare } = await supabase
+        const { data: secretShares } = await supabase
             .from('secret_shares')
             .select('id, secrets!inner(project_id)')
             .eq('user_id', userId)
+            .eq('secrets.project_id', projectId)
             .limit(1)
 
-        if (secretShare && secretShare.length > 0) {
-            const secret = secretShare[0] as any
-            if (secret.secrets?.project_id === projectId) {
-                hasAccess = true
-            }
+        if (secretShares && secretShares.length > 0) {
+            hasAccess = true
         }
     }
 
