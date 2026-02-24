@@ -385,6 +385,7 @@ function SceneContent() {
 }
 
 export function Scene() {
+  const { resolvedTheme } = useTheme();
   const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
@@ -403,9 +404,14 @@ export function Scene() {
   return (
     <div
       className="absolute inset-0 pointer-events-none z-0 hidden md:block"
-      style={{ opacity }}
+      style={
+        {
+          opacity,
+          viewTransitionName: "none",
+        } as React.CSSProperties & { viewTransitionName?: string }
+      }
     >
-      <Canvas>
+      <Canvas gl={{ preserveDrawingBuffer: true }} key={resolvedTheme}>
         <Suspense fallback={null}>
           <SceneContent />
         </Suspense>

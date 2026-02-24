@@ -69,11 +69,10 @@ export function Navbar({ user }: NavbarProps) {
               Docs
             </Link>
             <Link
-              href="https://github.com/dinanathdash/envault"
-              target="_blank"
+              href="/support"
               className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
             >
-              GitHub
+              Support
             </Link>
             <Link href={user ? "/dashboard" : "/login"}>
               <Button

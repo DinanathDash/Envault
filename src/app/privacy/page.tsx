@@ -5,6 +5,8 @@ const sections = [
   { id: "introduction", title: "Introduction" },
   { id: "information-we-collect", title: "Information We Collect" },
   { id: "data-security", title: "Data Security & Encryption" },
+  { id: "authentication-methods", title: "Modern Authentication Methods" },
+  { id: "environment-management", title: "Environment Management Data" },
   { id: "cli-data", title: "CLI Data Collection" },
   { id: "team-data", title: "Team Collaboration Data" },
   { id: "notification-data", title: "Notification Data" },
@@ -25,7 +27,7 @@ export default async function PrivacyPage() {
   return (
     <LegalLayout
       title="Privacy Policy"
-      lastUpdated="07 February 2026"
+      lastUpdated="24 February 2026"
       sections={sections}
       user={user}
     >
@@ -125,11 +127,87 @@ export default async function PrivacyPage() {
       </section>
 
       <section
+        id="authentication-methods"
+        className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
+      >
+        <h2 className="text-2xl font-semibold mb-4 font-serif">
+          4. Modern Authentication Methods
+        </h2>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
+          Envault supports multiple secure authentication methods to protect
+          your account:
+        </p>
+        <ul className="list-disc pl-6 space-y-3 text-muted-foreground">
+          <li className="leading-relaxed">
+            <strong>WebAuthn Passkeys:</strong> When you register or
+            authenticate with passkeys, we store cryptographic public keys and
+            device metadata. No passwords or private keys are stored by Envault.
+          </li>
+          <li className="leading-relaxed">
+            <strong>OAuth Providers (Gmail, GitHub):</strong> When linking OAuth
+            providers, we receive your email address, name, and OAuth profile ID
+            from the provider. These are used solely for account linking and
+            authentication purposes. We do not store your OAuth tokens or access
+            sensitive OAuth scopes.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Device Flow Authentication:</strong> For CLI authentication,
+            we generate temporary device codes and authorization tokens with
+            short expiration times. Tokens are sent over HTTPS only and are
+            never logged or stored in plaintext.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Authentication Logs:</strong> We maintain security logs of
+            authentication attempts and successful logins for 1 year to detect
+            suspicious activities and prevent unauthorized access.
+          </li>
+        </ul>
+      </section>
+
+      <section
+        id="environment-management"
+        className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
+      >
+        <h2 className="text-2xl font-semibold mb-4 font-serif">
+          5. Environment Management Data
+        </h2>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
+          Envault enables managing multiple environments (development, staging,
+          production) with workspace-aware scoping:
+        </p>
+        <ul className="list-disc pl-6 space-y-3 text-muted-foreground">
+          <li className="leading-relaxed">
+            <strong>Environment Metadata:</strong> We store environment names,
+            descriptions, types, and creation timestamps for organizational
+            purposes.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Environment-Level Permissions:</strong> Access control data
+            for each environment, including which team members can view or
+            modify secrets in specific environments.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Environment Context:</strong> CLI and API usage data that
+            tracks which environment is being accessed during operations for
+            audit and security purposes.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Environment State:</strong> Workspace mode context data that
+            remembers your last-used environment to streamline your workflow.
+          </li>
+        </ul>
+        <p className="text-muted-foreground leading-relaxed mt-4">
+          Environment data is encrypted consistently with your secrets and is
+          subject to the same access control and retention policies.
+        </p>
+      </section>
+
+      <section
         id="cli-data"
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          4. CLI Data Collection
+          6. CLI Data Collection
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           When you use the Envault CLI, we may collect certain information to
@@ -167,7 +245,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          5. Team Collaboration Data
+          7. Team Collaboration Data
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Envault enables secure team collaboration. When you participate in
@@ -206,7 +284,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          6. Notification Data
+          8. Notification Data
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Envault provides notifications for team collaboration, security
@@ -242,7 +320,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          7. Use of Data
+          9. Use of Data
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Envault uses the collected data for various purposes:
@@ -269,7 +347,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          8. Third-Party Service Providers
+          10. Third-Party Service Providers
         </h2>
         <p className="text-muted-foreground leading-relaxed mb-4">
           We may employ third party companies and individuals to facilitate our
@@ -288,6 +366,14 @@ export default async function PrivacyPage() {
               <strong className="text-foreground">Supabase</strong>: Provides
               database services, authentication, and real-time features. Your
               encrypted data and authentication information are stored here.
+            </li>
+            <li className="leading-relaxed">
+              <strong className="text-foreground">
+                OAuth Providers (Gmail, GitHub)
+              </strong>
+              : Used for optional account linking and multi-provider
+              authentication. We receive your email and profile ID for identity
+              verification only.
             </li>
             <li className="leading-relaxed">
               <strong className="text-foreground">Upstash Redis</strong>: Used
@@ -321,7 +407,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          9. Data Retention
+          11. Data Retention
         </h2>
         <p className="text-muted-foreground leading-relaxed mb-4">
           We will retain your Personal Data only for as long as is necessary for
@@ -379,7 +465,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          10. Your Data Rights
+          12. Your Data Rights
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Depending on your location, you may have the following rights
@@ -403,7 +489,7 @@ export default async function PrivacyPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          11. Changes to This Privacy Policy
+          13. Changes to This Privacy Policy
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           We may update our Privacy Policy from time to time. We will notify you
@@ -418,7 +504,7 @@ export default async function PrivacyPage() {
 
       <section id="contact" className="scroll-mt-28 mb-12">
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          12. Contact Us
+          14. Contact Us
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           If you have any questions about this privacy policy, please contact us

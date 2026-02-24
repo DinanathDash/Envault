@@ -88,22 +88,22 @@ export function CliSection() {
     const workflowSteps = [
         {
             icon: GitBranch,
-            title: "Git-like Workflow",
-            desc: "Push and pull secrets just like you do with code. No more manual copying.",
+            title: "Workspace-Aware Context Switching",
+            desc: "Switch between projects and environments seamlessly. The CLI remembers your context and prevents accidental cross-project operations.",
             color: "text-blue-500",
             bg: "bg-blue-500/10"
         },
         {
             icon: Zap,
-            title: "Zero Configuration",
-            desc: "Works instantly with your existing .env files. Auto-detection built-in.",
+            title: "Smart Environment Selection",
+            desc: "Default environment selection during `init` and automatic context-aware command execution. No more manual flag juggling.",
             color: "text-primary",
             bg: "bg-primary/10"
         },
         {
             icon: Shield,
             title: "Secure Device Flow",
-            desc: "Authenticate securely via browser without handling long-lived tokens manually.",
+            desc: "Authenticate securely via browser without handling long-lived tokens manually. Multi-environment aware authentication.",
             color: "text-green-500",
             bg: "bg-green-500/10"
         }

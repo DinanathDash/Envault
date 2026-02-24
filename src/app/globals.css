@@ -75,6 +75,11 @@
 
 @layer utilities {
 
+  /* Exclude Three.js Canvas from View Transitions */
+  canvas {
+    view-transition-name: none !important;
+  }
+
   /* Global Scrollbar Hiding - Applied everywhere as per user request */
   html,
   body,

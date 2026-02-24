@@ -6,6 +6,8 @@ const sections = [
   { id: "accounts", title: "Accounts" },
   { id: "intellectual-property", title: "Intellectual Property" },
   { id: "user-responsibilities", title: "User Responsibilities & Encryption" },
+  { id: "authentication-methods", title: "Authentication Methods" },
+  { id: "environment-management", title: "Environment Management" },
   { id: "cli-usage", title: "CLI Usage Terms" },
   { id: "team-collaboration", title: "Team Collaboration" },
   { id: "key-management", title: "Key Management & Security" },
@@ -28,7 +30,7 @@ export default async function TermsPage() {
   return (
     <LegalLayout
       title="Terms of Service"
-      lastUpdated="07 February 2026"
+      lastUpdated="24 February 2026"
       sections={sections}
       user={user}
     >
@@ -59,13 +61,20 @@ export default async function TermsPage() {
           constitutes a breach of the Terms, which may result in immediate
           termination of your account on our Service.
         </p>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
+          You are responsible for safeguarding any authentication credentials used
+          to access the Service, whether passwords, passkeys, OAuth tokens, or
+          API keys. This includes credentials for third-party services. You agree
+          not to disclose your credentials to any third party. You must notify us
+          immediately upon becoming aware of any breach of security or unauthorized
+          use of your account.
+        </p>
         <p className="text-muted-foreground leading-relaxed">
-          You are responsible for safeguarding the password that you use to
-          access the Service and for any activities or actions under your
-          password, whether your password is with our Service or a third-party
-          service. You agree not to disclose your password to any third party.
-          You must notify us immediately upon becoming aware of any breach of
-          security or unauthorized use of your account.
+          Envault supports multiple authentication methods including traditional
+          passwords, WebAuthn passkeys, and OAuth providers (Gmail, GitHub). Your
+          choice of authentication method does not affect your responsibility to
+          maintain account security. If you link multiple OAuth providers, you agree
+          that any linked provider can be used to access your account.
         </p>
       </section>
 
@@ -129,11 +138,92 @@ export default async function TermsPage() {
       </section>
 
       <section
+        id="authentication-methods"
+        className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
+      >
+        <h2 className="text-2xl font-semibold mb-4 font-serif">
+          5. Authentication Methods
+        </h2>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
+          Envault offers multiple authentication methods for your security and
+          convenience. By using any authentication method, you agree to the
+          following terms:
+        </p>
+        <ul className="list-disc pl-6 space-y-3 text-muted-foreground">
+          <li className="leading-relaxed">
+            <strong>WebAuthn Passkeys:</strong> Passkey authentication is the
+            most secure method and eliminates phishing risks. You are responsible
+            for storing recovery codes securely if provided.
+          </li>
+          <li className="leading-relaxed">
+            <strong>OAuth Providers:</strong> When using OAuth (Gmail, GitHub, etc.),
+            you authorize Envault to receive your email and profile information from
+            the provider. You acknowledge that Envault does not control second-factor
+            authentication settings at the OAuth provider.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Account Linking:</strong> You can link multiple authentication
+            methods to your account. Any linked method can be used to access your
+            account. Linking a new provider does not require removing existing methods,
+            but you remain responsible for all linked accounts.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Session Management:</strong> You are responsible for logging out
+            on shared devices. Envault may terminate sessions for security reasons
+            without notice.
+          </li>
+        </ul>
+      </section>
+
+      <section
+        id="environment-management"
+        className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
+      >
+        <h2 className="text-2xl font-semibold mb-4 font-serif">
+          6. Environment Management
+        </h2>
+        <p className="text-muted-foreground mb-4 leading-relaxed">
+          Envault enables you to organize secrets across multiple environments
+          (development, staging, production) with workspace-aware scoping. By
+          using environment management features, you agree to:
+        </p>
+        <ul className="list-disc pl-6 space-y-3 text-muted-foreground">
+          <li className="leading-relaxed">
+            <strong>Environment Creation:</strong> You are responsible for properly
+            configuring environments and ensuring that sensitive production data is
+            not accidentally mixed with development environments.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Environment-Level Permissions:</strong> Permissions set at the
+            environment level override project-level permissions. Team members may
+            have access to some environments but not others within a project.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Default Environment:</strong> When initializing a project via
+            CLI, you must select or create a default environment. Operations without
+            an explicit environment flag will use this default.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Workspace Context:</strong> The CLI may remember your current
+            environment context to improve workflow efficiency. You are responsible
+            for verifying the correct environment is active before executing
+            operations.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Environment Deletion:</strong> Deleting an environment is
+            permanent and cannot be undone. All secrets within that environment
+            will be deleted. Owners must provide explicit confirmation before
+            deletion.
+          </li>
+        </ul>
+      </section>
+
+      <section
         id="cli-usage"
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          5. CLI Usage Terms
+          7. CLI Usage Terms
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Envault provides a Command Line Interface (CLI) tool for managing
@@ -169,7 +259,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          6. Team Collaboration
+          8. Team Collaboration
         </h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
           Envault enables secure team collaboration through project sharing and
@@ -186,7 +276,8 @@ export default async function TermsPage() {
           </li>
           <li className="leading-relaxed">
             Role assignments (Owner, Editor, Viewer) determine what actions team
-            members can perform.
+            members can perform. Environment-level permissions may further restrict
+            access to specific environments.
           </li>
           <li className="leading-relaxed">
             You agree to use team features only for legitimate collaboration
@@ -196,6 +287,10 @@ export default async function TermsPage() {
             Disputes over project ownership or access should be resolved through
             direct communication with project owners.
           </li>
+          <li className="leading-relaxed">
+            When team members leave your organization, you are responsible for
+            removing their access to projects.
+          </li>
         </ul>
       </section>
 
@@ -204,7 +299,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          7. Key Management & Security
+          9. Key Management & Security
         </h2>
         <div className="bg-accent/30 border border-border/50 rounded-lg p-6 mb-4">
           <p className="text-muted-foreground leading-relaxed mb-4">
@@ -241,7 +336,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          8. Notifications & Communications
+          10. Notifications & Communications
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           Envault provides notification features for team collaboration,
@@ -275,7 +370,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          9. Links To Other Web Sites
+          11. Links To Other Web Sites
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           Our Service may contain links to third-party web sites or services
@@ -295,7 +390,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          10. Termination
+          12. Termination
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           We may terminate or suspend your account immediately, without prior
@@ -311,7 +406,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          11. Limitation of Liability
+          13. Limitation of Liability
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           In no event shall Envault, nor its directors, employees, partners,
@@ -335,7 +430,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          12. Disclaimer
+          14. Disclaimer
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           Your use of the Service is at your sole risk. The Service is provided
@@ -359,7 +454,7 @@ export default async function TermsPage() {
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          13. Governing Law
+          15. Governing Law
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           These Terms shall be governed and construed in accordance with the
@@ -375,7 +470,7 @@ export default async function TermsPage() {
         id="changes"
         className="scroll-mt-28 mb-12 pb-8 border-b border-border/30"
       >
-        <h2 className="text-2xl font-semibold mb-4 font-serif">14. Changes</h2>
+        <h2 className="text-2xl font-semibold mb-4 font-serif">16. Changes</h2>
         <p className="text-muted-foreground leading-relaxed">
           We reserve the right, at our sole discretion, to modify or replace
           these Terms at any time. If a revision is material we will try to
@@ -390,7 +485,7 @@ export default async function TermsPage() {
 
       <section id="contact" className="scroll-mt-28 mb-12">
         <h2 className="text-2xl font-semibold mb-4 font-serif">
-          15. Contact Us
+          17. Contact Us
         </h2>
         <p className="text-muted-foreground leading-relaxed">
           If you have any questions about these Terms, please contact us at{" "}

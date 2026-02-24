@@ -51,7 +51,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
         }
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://envault.tech'
         const verificationUri = `${appUrl}/auth/device`
 
         return NextResponse.json({
