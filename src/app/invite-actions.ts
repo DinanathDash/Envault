@@ -249,7 +249,7 @@ export async function approveRequest(
   // Fetch request details
   const { data: request, error: requestError } = await admin
     .from("access_requests")
-    .select("*, projects!inner(user_id, name)")
+    .select("*, projects!inner(user_id, name, ui_mode)")
     .eq("id", requestId)
     .single();
 
@@ -258,11 +258,38 @@ export async function approveRequest(
   }
 
   // Verify User is Owner of the Project
-  const projectOwner = (request.projects as unknown as { user_id: string })
-    .user_id;
+  const requestProject = request.projects as unknown as {
+    user_id: string;
+    name: string;
+    ui_mode?: string | null;
+  };
+  const projectOwner = requestProject.user_id;
   if (projectOwner !== user.id) {
     return { error: "Unauthorized." };
   }
+
+  const isAdvancedMode = requestProject.ui_mode === "advanced";
+
+  const [{ data: requestedMemberProfile }, { data: requestedMemberAuth }] =
+    await Promise.all([
+      admin
+        .from("profiles")
+        .select("username")
+        .eq("id", request.user_id)
+        .maybeSingle(),
+      admin.auth.admin.getUserById(request.user_id),
+    ]);
+  const requestedMemberEmail = requestedMemberAuth?.user?.email || "";
+  const requestedMemberName =
+    requestedMemberProfile?.username ||
+    (typeof requestedMemberAuth?.user?.user_metadata?.username === "string"
+      ? requestedMemberAuth.user.user_metadata.username
+      : undefined) ||
+    (typeof requestedMemberAuth?.user?.user_metadata?.name === "string"
+      ? requestedMemberAuth.user.user_metadata.name
+      : undefined) ||
+    requestedMemberEmail.split("@")[0] ||
+    `user-${request.user_id.slice(0, 8)}`;
 
   // Check if user is already a member
   const { data: existingMember } = await admin
@@ -278,10 +305,13 @@ export async function approveRequest(
     const mergedRole: "viewer" | "editor" =
       roleRank(role) > roleRank(existingRole) ? role : existingRole;
 
-    const existingAllowed =
-      existingMember.allowed_environments as string[] | null | undefined;
-    const mergedAllowedEnvironments =
-      existingAllowed === null || existingAllowed === undefined
+    const existingAllowed = existingMember.allowed_environments as
+      | string[]
+      | null
+      | undefined;
+    const mergedAllowedEnvironments = !isAdvancedMode
+      ? null
+      : existingAllowed === null || existingAllowed === undefined
         ? null
         : allowedEnvironments
           ? Array.from(new Set([...existingAllowed, ...allowedEnvironments]))
@@ -311,6 +341,9 @@ export async function approveRequest(
         targetResourceId: request.user_id,
         metadata: {
           member_user_id: request.user_id,
+          beneficiary_user_id: request.user_id,
+          beneficiary_name: requestedMemberName,
+          beneficiary_email: requestedMemberEmail,
           project_name: projectName,
           changes: {
             role: {
@@ -336,6 +369,8 @@ export async function approveRequest(
         metadata: {
           member_user_id: request.user_id,
           beneficiary_user_id: request.user_id,
+          beneficiary_name: requestedMemberName,
+          beneficiary_email: requestedMemberEmail,
           project_name: projectName,
           changes: {
             allowed_environments: {
@@ -377,9 +412,8 @@ export async function approveRequest(
           );
         }
 
-        const { createAccessGrantedNotification } = await import(
-          "@/lib/notifications"
-        );
+        const { createAccessGrantedNotification } =
+          await import("@/lib/notifications");
         await createAccessGrantedNotification(
           request.user_id,
           projectName,
@@ -388,7 +422,10 @@ export async function approveRequest(
           mergedAllowedEnvironments,
         );
       } catch (notifyError) {
-        console.error("Failed to notify existing member approval update:", notifyError);
+        console.error(
+          "Failed to notify existing member approval update:",
+          notifyError,
+        );
       }
     }
 
@@ -403,19 +440,24 @@ export async function approveRequest(
     added_by: user.id,
   };
 
-  if (allowedEnvironments !== undefined) {
+  if (!isAdvancedMode) {
+    insertData.allowed_environments = null;
+  } else if (allowedEnvironments !== undefined) {
     insertData.allowed_environments = allowedEnvironments;
   }
 
-  const { error: memberError } = await admin.from("project_members").insert(insertData);
+  const { error: memberError } = await admin
+    .from("project_members")
+    .insert(insertData);
 
   if (memberError) {
     return { error: memberError.message };
   }
 
-  const projectNameForAudit = (request.projects as unknown as { name: string })
-    .name;
-  const normalizedAllowed = normalizeAllowedEnvironments(allowedEnvironments);
+  const projectNameForAudit = requestProject.name;
+  const normalizedAllowed = normalizeAllowedEnvironments(
+    isAdvancedMode ? allowedEnvironments : null,
+  );
 
   await logAuditEvent({
     projectId: request.project_id!,
@@ -426,6 +468,8 @@ export async function approveRequest(
     metadata: {
       member_user_id: request.user_id,
       beneficiary_user_id: request.user_id,
+      beneficiary_name: requestedMemberName,
+      beneficiary_email: requestedMemberEmail,
       role,
       project_name: projectNameForAudit,
     },
@@ -439,6 +483,9 @@ export async function approveRequest(
     targetResourceId: request.user_id,
     metadata: {
       member_user_id: request.user_id,
+      beneficiary_user_id: request.user_id,
+      beneficiary_name: requestedMemberName,
+      beneficiary_email: requestedMemberEmail,
       project_name: projectNameForAudit,
       changes: {
         allowed_environments: {
@@ -632,6 +679,11 @@ export async function removeMember(projectId: string, memberUserId: string) {
       admin.auth.admin.getUserById(memberUserId),
       admin.auth.admin.getUserById(user.id),
     ]);
+  const { data: removedUserProfile } = await admin
+    .from("profiles")
+    .select("username")
+    .eq("id", memberUserId)
+    .maybeSingle();
   const { data: actorProfile } = await admin
     .from("profiles")
     .select("username")
@@ -643,6 +695,17 @@ export async function removeMember(projectId: string, memberUserId: string) {
     actorProfile?.username ||
     actorUser?.user?.user_metadata?.username ||
     "Owner";
+  const removedUserEmail = removedUser?.user?.email || "";
+  const removedUserName =
+    removedUserProfile?.username ||
+    (typeof removedUser?.user?.user_metadata?.username === "string"
+      ? removedUser.user.user_metadata.username
+      : undefined) ||
+    (typeof removedUser?.user?.user_metadata?.name === "string"
+      ? removedUser.user.user_metadata.name
+      : undefined) ||
+    removedUserEmail.split("@")[0] ||
+    `user-${memberUserId.slice(0, 8)}`;
 
   const { error } = await supabase
     .from("project_members")
@@ -660,6 +723,9 @@ export async function removeMember(projectId: string, memberUserId: string) {
     targetResourceId: memberUserId,
     metadata: {
       member_user_id: memberUserId,
+      beneficiary_user_id: memberUserId,
+      beneficiary_name: removedUserName,
+      beneficiary_email: removedUserEmail,
       project_name: projectName,
     },
   });
@@ -672,6 +738,9 @@ export async function removeMember(projectId: string, memberUserId: string) {
     targetResourceId: memberUserId,
     metadata: {
       member_user_id: memberUserId,
+      beneficiary_user_id: memberUserId,
+      beneficiary_name: removedUserName,
+      beneficiary_email: removedUserEmail,
       project_name: projectName,
       changes: {
         allowed_environments: {
@@ -690,9 +759,8 @@ export async function removeMember(projectId: string, memberUserId: string) {
   await invalidateUserSecretAccess(memberUserId);
 
   try {
-    const { createMemberRemovedNotification } = await import(
-      "@/lib/notifications"
-    );
+    const { createMemberRemovedNotification } =
+      await import("@/lib/notifications");
     const { sendAccessRevokedEmail } = await import("@/lib/email");
 
     await createMemberRemovedNotification(memberUserId, projectName, removedBy);
@@ -734,17 +802,28 @@ export async function updateMemberRole(
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const admin = createAdminClient();
 
-  const [{ data: existingMember }, { data: projectData }, { data: actorUser }] =
-    await Promise.all([
-      admin
-        .from("project_members")
-        .select("role, allowed_environments")
-        .eq("project_id", projectId)
-        .eq("user_id", memberUserId)
-        .single(),
-      admin.from("projects").select("name, slug").eq("id", projectId).single(),
-      admin.auth.admin.getUserById(user.id),
-    ]);
+  const [
+    { data: existingMember },
+    { data: projectData },
+    { data: actorUser },
+    { data: memberUser },
+    { data: memberProfile },
+  ] = await Promise.all([
+    admin
+      .from("project_members")
+      .select("role, allowed_environments")
+      .eq("project_id", projectId)
+      .eq("user_id", memberUserId)
+      .single(),
+    admin.from("projects").select("name, slug").eq("id", projectId).single(),
+    admin.auth.admin.getUserById(user.id),
+    admin.auth.admin.getUserById(memberUserId),
+    admin
+      .from("profiles")
+      .select("username")
+      .eq("id", memberUserId)
+      .maybeSingle(),
+  ]);
   const { data: actorProfile } = await admin
     .from("profiles")
     .select("username")
@@ -760,6 +839,17 @@ export async function updateMemberRole(
     | string[]
     | null
     | undefined;
+  const memberEmail = memberUser?.user?.email || "";
+  const memberName =
+    memberProfile?.username ||
+    (typeof memberUser?.user?.user_metadata?.username === "string"
+      ? memberUser.user.user_metadata.username
+      : undefined) ||
+    (typeof memberUser?.user?.user_metadata?.name === "string"
+      ? memberUser.user.user_metadata.name
+      : undefined) ||
+    memberEmail.split("@")[0] ||
+    `user-${memberUserId.slice(0, 8)}`;
 
   const updateData: Record<string, unknown> = { role: newRole };
 
@@ -788,8 +878,13 @@ export async function updateMemberRole(
   }
 
   if (!data || data.length === 0) {
-    console.error("updateMemberRole: No rows updated. Possibly an RLS issue or mismatched IDs.");
-    return { error: "No rows were updated. Check permissions or if the user exists in the project." };
+    console.error(
+      "updateMemberRole: No rows updated. Possibly an RLS issue or mismatched IDs.",
+    );
+    return {
+      error:
+        "No rows were updated. Check permissions or if the user exists in the project.",
+    };
   }
 
   const nextAllowed = allowedEnvironments ?? previousAllowed ?? null;
@@ -803,6 +898,9 @@ export async function updateMemberRole(
       targetResourceId: memberUserId,
       metadata: {
         member_user_id: memberUserId,
+        beneficiary_user_id: memberUserId,
+        beneficiary_name: memberName,
+        beneficiary_email: memberEmail,
         project_name: projectData?.name || "Project",
         changes: {
           role: {
@@ -825,6 +923,8 @@ export async function updateMemberRole(
       metadata: {
         member_user_id: memberUserId,
         beneficiary_user_id: memberUserId,
+        beneficiary_name: memberName,
+        beneficiary_email: memberEmail,
         project_name: projectData?.name || "Project",
         changes: {
           allowed_environments: {
@@ -842,12 +942,9 @@ export async function updateMemberRole(
   await invalidateUserSecretAccess(memberUserId);
 
   try {
-    const { createRoleChangedNotification } = await import(
-      "@/lib/notifications"
-    );
+    const { createRoleChangedNotification } =
+      await import("@/lib/notifications");
     const { sendAccessUpdatedEmail } = await import("@/lib/email");
-    const { data: memberUser } = await admin.auth.admin.getUserById(memberUserId);
-
     const projectName = projectData?.name || "Project";
     const projectSlug = projectData?.slug || projectId;
     const changedBy =
@@ -879,7 +976,10 @@ export async function updateMemberRole(
       );
     }
   } catch (notifyError) {
-    console.error("Failed to send role/environment update notifications:", notifyError);
+    console.error(
+      "Failed to send role/environment update notifications:",
+      notifyError,
+    );
   }
 
   revalidatePath("/project/[slug]", "page");

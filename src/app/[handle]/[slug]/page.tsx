@@ -179,7 +179,8 @@ export default async function SharedProjectPage({
   }
 
   const hasActiveEnvironmentAccess =
-    !allowedEnvironments || allowedEnvironments.includes(activeEnvironment.slug);
+    !allowedEnvironments ||
+    allowedEnvironments.includes(activeEnvironment.slug);
 
   // Fetch secrets + sharedSecrets in parallel (both need project.id)
   const [
@@ -331,7 +332,8 @@ export default async function SharedProjectPage({
       slug: env.slug,
       name: env.name,
       is_default: env.is_default,
-      can_access: !allowedEnvironments || allowedEnvironments.includes(env.slug),
+      can_access:
+        !allowedEnvironments || allowedEnvironments.includes(env.slug),
     })),
     owner_username: handle,
     createdAt: project.created_at,
@@ -346,6 +348,18 @@ export default async function SharedProjectPage({
             console.error(`Failed to decrypt key: ${secret.key}`, error);
           }
         }
+
+        const creatorFromMap = secret.user_id
+          ? userMap.get(secret.user_id)
+          : undefined;
+        const updaterFromMap = secret.last_updated_by
+          ? userMap.get(secret.last_updated_by)
+          : undefined;
+        const updaterSnapshotId =
+          (secret.last_updated_by_user_id_snapshot as string | undefined) ||
+          secret.last_updated_by ||
+          undefined;
+
         return {
           id: secret.id,
           key: secret.key,
@@ -355,10 +369,39 @@ export default async function SharedProjectPage({
           isShared: secret.isShared || false,
           sharedAt: secret.sharedAt,
           userInfo: {
-            creator: secret.user_id ? userMap.get(secret.user_id) : undefined,
-            updater: secret.last_updated_by
-              ? userMap.get(secret.last_updated_by)
+            creator: secret.user_id
+              ? secret.created_by_name || secret.created_by_email
+                ? {
+                    id:
+                      (secret.created_by_user_id_snapshot as
+                        | string
+                        | undefined) || secret.user_id,
+                    email:
+                      (secret.created_by_email as string | undefined) || "",
+                    username:
+                      (secret.created_by_name as string | undefined) ||
+                      undefined,
+                    avatar: creatorFromMap?.avatar,
+                  }
+                : creatorFromMap
               : undefined,
+            updater:
+              updaterSnapshotId ||
+              secret.last_updated_by_name ||
+              secret.last_updated_by_email
+                ? secret.last_updated_by_name || secret.last_updated_by_email
+                  ? {
+                      id: updaterSnapshotId || "",
+                      email:
+                        (secret.last_updated_by_email as string | undefined) ||
+                        "",
+                      username:
+                        (secret.last_updated_by_name as string | undefined) ||
+                        undefined,
+                      avatar: updaterFromMap?.avatar,
+                    }
+                  : updaterFromMap
+                : undefined,
           },
         };
       }),

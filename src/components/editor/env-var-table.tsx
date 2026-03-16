@@ -255,7 +255,8 @@ export function EnvVarTable({
                                     user={{
                                       email: variable.userInfo.updater.email,
                                       avatar: variable.userInfo.updater.avatar,
-                                      username: variable.userInfo.updater.username,
+                                      username:
+                                        variable.userInfo.updater.username,
                                       name:
                                         variable.userInfo.updater.username ||
                                         variable.userInfo.updater.email,
@@ -351,7 +352,7 @@ export function EnvVarTable({
                                       </span>
                                     </>
                                   ) : (
-                                    <span>User Left</span>
+                                    <span>Former Member</span>
                                   )}
                                 </div>
                               </div>

@@ -188,9 +188,7 @@ export default function SettingsView() {
     /[.*+?^${}()|[\]\\]/g,
     "\\$&",
   );
-  const defaultUsernameRegex = new RegExp(
-    `^${escapedDefaultBase}(-\\d+)?$`,
-  );
+  const defaultUsernameRegex = new RegExp(`^${escapedDefaultBase}(-\\d+)?$`);
   const hasCustomizedUsername = user?.username
     ? !defaultUsernameRegex.test(user.username)
     : false;
@@ -556,6 +554,17 @@ export default function SettingsView() {
           </AlertDialogHeader>
 
           <div className="py-4 space-y-4">
+            {isDeletingAccount && (
+              <div className="p-3 border rounded-md bg-muted/50 text-sm text-muted-foreground flex items-start gap-2">
+                <Loader2 className="h-4 w-4 animate-spin mt-0.5 shrink-0" />
+                <p>
+                  Deletion is in progress. We are safely transferring any shared
+                  project secrets you created to the project owners and
+                  preserving audit history before removing your account.
+                </p>
+              </div>
+            )}
+
             {projects.length > 0 && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md space-y-3">
                 <p className="text-sm font-medium text-destructive">
@@ -627,7 +636,7 @@ export default function SettingsView() {
               {isDeletingAccount ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Deleting...
+                  Transferring data and deleting...
                 </>
               ) : (
                 "Delete Account"

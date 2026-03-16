@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { authRateLimit } from "@/lib/ratelimit";
+import { logAuditEvent } from "@/lib/audit-logger";
 
 export async function signInWithGoogle(formData?: FormData) {
   const supabase = await createClient();
@@ -149,7 +150,83 @@ export async function deleteAccountAction() {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const adminSupabase = createAdminClient();
 
-  // 0. Clean up user memberships and shared access
+  const { data: profileData } = await adminSupabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const actorName =
+    profileData?.username ||
+    (typeof user.user_metadata?.username === "string"
+      ? user.user_metadata.username
+      : undefined) ||
+    (typeof user.user_metadata?.name === "string"
+      ? user.user_metadata.name
+      : undefined) ||
+    null;
+  const actorEmail = user.email ?? null;
+  const actorDisplayName =
+    actorName || actorEmail?.split("@")[0] || `user-${user.id.slice(0, 8)}`;
+
+  // 0. Reassign shared ownership references before deleting the auth user.
+  const { error: preparationError } = await adminSupabase.rpc(
+    "prepare_user_account_deletion",
+    {
+      p_user_id: user.id,
+      p_actor_name: actorName,
+      p_actor_email: actorEmail,
+    },
+  );
+
+  if (preparationError) {
+    console.error(
+      "Error preparing account deletion (reassignment/audit snapshot):",
+      preparationError,
+    );
+    return {
+      error:
+        "Failed to prepare account deletion safely. Please try again or contact support.",
+    };
+  }
+
+  // 0.5. Emit membership removal audit events before membership rows are deleted
+  // so project owners have a clear trail that this member account was deleted.
+  const { data: memberships } = await adminSupabase
+    .from("project_members")
+    .select("project_id, projects!inner(name)")
+    .eq("user_id", user.id);
+
+  if (memberships && memberships.length > 0) {
+    await Promise.allSettled(
+      memberships.map((membership) => {
+        const projectName =
+          (membership.projects as unknown as { name?: string })?.name ||
+          "Project";
+
+        return logAuditEvent({
+          projectId: membership.project_id,
+          actorId: user.id,
+          actorType: "user",
+          action: "member.removed",
+          targetResourceId: user.id,
+          metadata: {
+            actor_name: actorDisplayName,
+            actor_email: actorEmail || "",
+            member_user_id: user.id,
+            beneficiary_user_id: user.id,
+            beneficiary_name: actorDisplayName,
+            beneficiary_email: actorEmail || "",
+            project_name: projectName,
+            reason: "account_deleted",
+            initiated_by: "self",
+          },
+        });
+      }),
+    );
+  }
+
+  // 1. Clean up user memberships and shared access
   // We must clean these up explicitly because they might be on projects/secrets NOT owned by the user,
   // or the foreign keys might not be set to CASCADE for these specific relationships.
 
@@ -175,16 +252,6 @@ export async function deleteAccountAction() {
   if (memberError)
     console.error("Error deleting project memberships:", memberError);
 
-  // Project Members (where user added someone else)
-  // If we don't delete these, the 'added_by' foreign key constraint will fail.
-  // Ideally we would transfer these to the owner, but deleting is acceptable for account deletion.
-  const { error: addedByError } = await adminSupabase
-    .from("project_members")
-    .delete()
-    .eq("added_by", user.id);
-  if (addedByError)
-    console.error("Error deleting members added by user:", addedByError);
-
   // Secrets (where user updated them but doesn't own them)
   // We must NULL out the reference, otherwise we can't delete the user.
   // We do NOT want to delete the secret itself as it belongs to someone else.
@@ -195,17 +262,6 @@ export async function deleteAccountAction() {
 
   if (updatedByError)
     console.error("Error nullifying updated_by:", updatedByError);
-
-  // 1. Delete user's secrets
-  const { error: secretsError } = await adminSupabase
-    .from("secrets")
-    .delete()
-    .eq("user_id", user.id);
-
-  if (secretsError) {
-    console.error("Error deleting user secrets:", secretsError);
-    return { error: "Failed to clean up user data (secrets)" };
-  }
 
   // 2. Delete user's projects
   const { error: projectsError } = await adminSupabase

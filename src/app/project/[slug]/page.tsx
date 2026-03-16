@@ -156,7 +156,8 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
   }
 
   const hasActiveEnvironmentAccess =
-    !allowedEnvironments || allowedEnvironments.includes(activeEnvironment.slug);
+    !allowedEnvironments ||
+    allowedEnvironments.includes(activeEnvironment.slug);
 
   let secrets: Array<{
     id: string;
@@ -324,12 +325,13 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
       project.default_environment_slug || activeEnvironment.slug,
     active_environment_slug: activeEnvironment.slug,
     environments: envList.map((env) => ({
-        id: env.id,
-        slug: env.slug,
-        name: env.name,
-        is_default: env.is_default,
-        can_access: !allowedEnvironments || allowedEnvironments.includes(env.slug),
-      })),
+      id: env.id,
+      slug: env.slug,
+      name: env.name,
+      is_default: env.is_default,
+      can_access:
+        !allowedEnvironments || allowedEnvironments.includes(env.slug),
+    })),
     createdAt: project.created_at,
     role: role,
     variables: await Promise.all(
@@ -357,12 +359,46 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
           }
         }
 
-        const creator = secret.user_id
+        const creatorFromMap = secret.user_id
           ? userMap.get(secret.user_id)
           : undefined;
-        const updater = secret.last_updated_by
+        const creator = secret.user_id
+          ? secret.created_by_name || secret.created_by_email
+            ? {
+                id:
+                  (secret.created_by_user_id_snapshot as string | undefined) ||
+                  secret.user_id,
+                email: (secret.created_by_email as string | undefined) || "",
+                username:
+                  (secret.created_by_name as string | undefined) || undefined,
+                avatar: creatorFromMap?.avatar,
+              }
+            : creatorFromMap
+          : undefined;
+
+        const updaterFromMap = secret.last_updated_by
           ? userMap.get(secret.last_updated_by)
           : undefined;
+        const updaterSnapshotId =
+          (secret.last_updated_by_user_id_snapshot as string | undefined) ||
+          secret.last_updated_by ||
+          undefined;
+        const updater =
+          updaterSnapshotId ||
+          secret.last_updated_by_name ||
+          secret.last_updated_by_email
+            ? secret.last_updated_by_name || secret.last_updated_by_email
+              ? {
+                  id: updaterSnapshotId || "",
+                  email:
+                    (secret.last_updated_by_email as string | undefined) || "",
+                  username:
+                    (secret.last_updated_by_name as string | undefined) ||
+                    undefined,
+                  avatar: updaterFromMap?.avatar,
+                }
+              : updaterFromMap
+            : undefined;
 
         return {
           id: secret.id,

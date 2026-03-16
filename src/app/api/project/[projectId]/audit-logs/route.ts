@@ -42,7 +42,10 @@ function normalizeEnvValue(value: unknown): string[] | "all" | null {
   return null;
 }
 
-function getEnvAccessState(value: unknown): { state: EnvAccessState; key: string } {
+function getEnvAccessState(value: unknown): {
+  state: EnvAccessState;
+  key: string;
+} {
   const normalized = normalizeEnvValue(value);
   if (normalized === "all") {
     return { state: "all", key: "all" };
@@ -122,7 +125,8 @@ export async function GET(
     }
 
     const url = new URL(req.url);
-    const actorId = url.searchParams.get("actor_id") || url.searchParams.get("user_id");
+    const actorId =
+      url.searchParams.get("actor_id") || url.searchParams.get("user_id");
     const action = url.searchParams.get("action");
     const isEnvAccessFilter =
       action === "environment.access_granted" ||
@@ -151,14 +155,19 @@ export async function GET(
     const role = await getProjectRole(supabase, projectId, user.id);
     if (!role) {
       return NextResponse.json(
-        { error: "Forbidden: You do not have access to this project's audit logs" },
+        {
+          error:
+            "Forbidden: You do not have access to this project's audit logs",
+        },
         { status: 403 },
       );
     }
 
     let query = supabase
       .from("audit_logs")
-      .select("id, created_at, project_id, actor_id, actor_type, action, target_resource_id, user_agent, metadata")
+      .select(
+        "id, created_at, project_id, actor_id, actor_type, action, target_resource_id, user_agent, metadata",
+      )
       .eq("project_id", projectId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -250,6 +259,7 @@ export async function GET(
         const fallbackName =
           (authUser.user_metadata?.username as string | undefined) ||
           (authUser.user_metadata?.name as string | undefined) ||
+          authUser.email?.split("@")[0] ||
           "Former Member";
 
         if (!userNameById.has(authUser.id)) {
@@ -281,10 +291,26 @@ export async function GET(
     }
 
     const enrichedLogs = (logs || []).map((log) => {
+      const rawMetadata =
+        log.metadata && typeof log.metadata === "object"
+          ? (log.metadata as Record<string, unknown>)
+          : {};
+      const metadataActorName =
+        typeof rawMetadata.actor_name === "string"
+          ? rawMetadata.actor_name
+          : "";
+      const metadataActorEmail =
+        typeof rawMetadata.actor_email === "string"
+          ? rawMetadata.actor_email
+          : "";
+
       const actorName =
         log.actor_type === "machine"
           ? machineNameById.get(log.actor_id) || "Service Token"
-          : userNameById.get(log.actor_id) || "Former Member";
+          : userNameById.get(log.actor_id) ||
+            metadataActorName ||
+            metadataActorEmail ||
+            "Former Member";
 
       const metadata =
         log.metadata && typeof log.metadata === "object"
@@ -298,16 +324,32 @@ export async function GET(
         parseMaybeUuid(metadata.beneficiary_user_id);
 
       if (beneficiaryUserId) {
+        const existingBeneficiaryName =
+          typeof metadata.beneficiary_name === "string"
+            ? metadata.beneficiary_name
+            : "";
+        const existingBeneficiaryEmail =
+          typeof metadata.beneficiary_email === "string"
+            ? metadata.beneficiary_email
+            : "";
+
         metadata.beneficiary_user_id = beneficiaryUserId;
         metadata.beneficiary_name =
-          userNameById.get(beneficiaryUserId) || "Former Member";
-        metadata.beneficiary_email = userEmailById.get(beneficiaryUserId) || "";
+          userNameById.get(beneficiaryUserId) ||
+          existingBeneficiaryName ||
+          existingBeneficiaryEmail ||
+          "Former Member";
+        metadata.beneficiary_email =
+          userEmailById.get(beneficiaryUserId) ||
+          existingBeneficiaryEmail ||
+          "";
       }
 
       return {
         ...log,
         actor_name: actorName,
-        actor_email: userEmailById.get(log.actor_id) || "",
+        actor_email:
+          userEmailById.get(log.actor_id) || metadataActorEmail || "",
         actor_avatar: userAvatarById.get(log.actor_id) || "",
         metadata,
       };
@@ -320,7 +362,9 @@ export async function GET(
               log.metadata && typeof log.metadata === "object"
                 ? (log.metadata as Record<string, unknown>)
                 : {};
-            return deriveEnvironmentAccessAction(log.action, metadata) === action;
+            return (
+              deriveEnvironmentAccessAction(log.action, metadata) === action
+            );
           })
         : enrichedLogs;
 

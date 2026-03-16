@@ -40,6 +40,68 @@ async function resolveProjectEnvironmentForUI(
   return null;
 }
 
+async function touchProjectActivity(projectId: string) {
+  const admin = createAdminClient();
+
+  await admin
+    .from("projects")
+    .update({ last_updated_at: new Date().toISOString() })
+    .eq("id", projectId);
+
+  const [{ data: project }, { data: members }] = await Promise.all([
+    admin.from("projects").select("user_id").eq("id", projectId).maybeSingle(),
+    admin.from("project_members").select("user_id").eq("project_id", projectId),
+  ]);
+
+  const userIds = new Set<string>();
+  if (project?.user_id) userIds.add(project.user_id);
+  (members || []).forEach((member) => {
+    if (member.user_id) userIds.add(member.user_id);
+  });
+
+  const { cacheDel, CacheKeys, invalidateProjectCaches } =
+    await import("@/lib/cache");
+
+  await Promise.all([
+    ...Array.from(userIds).map((userId) =>
+      cacheDel(CacheKeys.userProjects(userId)),
+    ),
+    invalidateProjectCaches(projectId),
+  ]);
+}
+
+async function getActorIdentitySnapshot(userId: string, fallbackEmail: string) {
+  const admin = createAdminClient();
+
+  const [{ data: profile }, { data: authUser }] = await Promise.all([
+    admin.from("profiles").select("username").eq("id", userId).maybeSingle(),
+    admin.auth.admin.getUserById(userId),
+  ]);
+
+  const email = authUser?.user?.email || fallbackEmail || "";
+  const metadata = authUser?.user?.user_metadata || {};
+  const usernameFromProfile =
+    profile && typeof profile.username === "string" ? profile.username : "";
+  const usernameFromMetadata =
+    typeof metadata.username === "string"
+      ? metadata.username
+      : typeof metadata.name === "string"
+        ? metadata.name
+        : "";
+
+  const name =
+    usernameFromProfile ||
+    usernameFromMetadata ||
+    email.split("@")[0] ||
+    `user-${userId.slice(0, 8)}`;
+
+  return {
+    id: userId,
+    name,
+    email,
+  };
+}
+
 export async function createProject(
   name: string,
   options?: {
@@ -74,7 +136,9 @@ export async function createProject(
     .maybeSingle();
 
   if (existingProject) {
-    return { error: `A project named "${name}" already exists. Please use a different name.` };
+    return {
+      error: `A project named "${name}" already exists. Please use a different name.`,
+    };
   }
 
   const slugBase =
@@ -196,9 +260,8 @@ export async function renameProject(id: string, newName: string) {
   }
 
   // Invalidate user's project list cache and specific project cache
-  const { cacheDel, CacheKeys, invalidateProjectCaches } = await import(
-    "@/lib/cache"
-  );
+  const { cacheDel, CacheKeys, invalidateProjectCaches } =
+    await import("@/lib/cache");
   await cacheDel(CacheKeys.userProjects(user.id));
   await invalidateProjectCaches(id);
 
@@ -217,7 +280,7 @@ export async function renameProject(id: string, newName: string) {
         `Your project has been renamed to "${data.name}"`,
         data.id,
         user.id,
-      ).catch(() => { });
+      ).catch(() => {});
     }
   }
 
@@ -236,9 +299,8 @@ export async function getProjects(bypassCache: boolean = false) {
   }
 
   // Check cache first
-  const { cacheGet, cacheSet, CacheKeys, CACHE_TTL } = await import(
-    "@/lib/cache"
-  );
+  const { cacheGet, cacheSet, CacheKeys, CACHE_TTL } =
+    await import("@/lib/cache");
   const cacheKey = CacheKeys.userProjects(user.id);
 
   if (!bypassCache) {
@@ -340,7 +402,10 @@ export async function getProjects(bypassCache: boolean = false) {
   // Create membership map
   const membershipMap = new Map<
     string,
-    { role: "owner" | "editor" | "viewer"; allowed_environments: string[] | null }
+    {
+      role: "owner" | "editor" | "viewer";
+      allowed_environments: string[] | null;
+    }
   >(
     memberships?.map((m) => [
       m.project_id,
@@ -403,11 +468,14 @@ export async function getProjects(bypassCache: boolean = false) {
     .select("id, project_id, name, slug, is_default");
 
   // Group environments by project
-  const environmentMap = new Map<string, Array<{ id: string, slug: string, name: string, is_default: boolean }>>();
+  const environmentMap = new Map<
+    string,
+    Array<{ id: string; slug: string; name: string; is_default: boolean }>
+  >();
   const environmentSlugByIdMap = new Map<string, string>();
 
   if (allEnvironments) {
-    allEnvironments.forEach(env => {
+    allEnvironments.forEach((env) => {
       const projEnvs = environmentMap.get(env.project_id) || [];
       projEnvs.push(env);
       environmentMap.set(env.project_id, projEnvs);
@@ -424,8 +492,13 @@ export async function getProjects(bypassCache: boolean = false) {
 
   const sharedSecretIdMap = new Map<string, Set<string>>();
   userSecretShares?.forEach((share) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const secret = Array.isArray(share.secrets) ? share.secrets[0] : (share.secrets as any);
+      const secretRelation = share.secrets as
+        | { project_id?: string }
+        | Array<{ project_id?: string }>
+        | null;
+      const secret = Array.isArray(secretRelation)
+        ? secretRelation[0]
+        : secretRelation;
     const projectId = secret?.project_id as string | undefined;
     if (!projectId) return;
     const ids = sharedSecretIdMap.get(projectId) || new Set<string>();
@@ -485,15 +558,30 @@ export async function getProjects(bypassCache: boolean = false) {
       ui_mode: p.ui_mode || "simple",
       default_environment_slug: p.default_environment_slug || "development",
       owner_username: ownerUsernameMap.get(p.user_id) || null,
-      createdAt: p.created_at || new Date().toISOString(), // Fallback for safety
+      createdAt: p.last_updated_at || p.created_at || new Date().toISOString(), // Activity timestamp for dashboard card
       secretCount: count,
       variables: [],
       role,
       isShared,
       environments: environmentMap.get(p.id) || [
-        { id: "dev-fallback", slug: "development", name: "Development", is_default: true },
-        { id: "prev-fallback", slug: "preview", name: "Preview", is_default: false },
-        { id: "prod-fallback", slug: "production", name: "Production", is_default: false },
+        {
+          id: "dev-fallback",
+          slug: "development",
+          name: "Development",
+          is_default: true,
+        },
+        {
+          id: "prev-fallback",
+          slug: "preview",
+          name: "Preview",
+          is_default: false,
+        },
+        {
+          id: "prod-fallback",
+          slug: "production",
+          name: "Production",
+          is_default: false,
+        },
       ],
     };
   });
@@ -540,9 +628,8 @@ export async function deleteProject(id: string) {
   }
 
   // Invalidate caches for owner and all members
-  const { cacheDel, CacheKeys, invalidateProjectCaches } = await import(
-    "@/lib/cache"
-  );
+  const { cacheDel, CacheKeys, invalidateProjectCaches } =
+    await import("@/lib/cache");
   await cacheDel(CacheKeys.userProjects(user.id));
   await invalidateProjectCaches(id);
 
@@ -577,6 +664,11 @@ export async function addVariable(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const actorSnapshot = await getActorIdentitySnapshot(
+    user.id,
+    user.email || "",
+  );
 
   // Rate Limiting
   const ip = (await headers()).get("x-forwarded-for") || "unknown";
@@ -618,12 +710,18 @@ export async function addVariable(
     .from("secrets")
     .insert({
       user_id: user.id, // Creator
+      created_by_user_id_snapshot: actorSnapshot.id,
+      created_by_name: actorSnapshot.name,
+      created_by_email: actorSnapshot.email,
       project_id: projectId,
       environment_id: environment.id,
       key,
       value: encryptedValue,
       key_id: keyId,
       last_updated_by: user.id,
+      last_updated_by_user_id_snapshot: actorSnapshot.id,
+      last_updated_by_name: actorSnapshot.name,
+      last_updated_by_email: actorSnapshot.email,
       last_updated_at: new Date().toISOString(),
     })
     .select()
@@ -655,7 +753,7 @@ export async function addVariable(
           `A new secret <strong>${key}</strong> was added to <strong>${projectData.name}</strong>`,
           projectData.id,
           user.id,
-        ).catch(() => { });
+        ).catch(() => {});
       }
     }
   }
@@ -672,6 +770,8 @@ export async function addVariable(
       beneficiary_user_id: user.id,
     },
   });
+
+  await touchProjectActivity(projectId);
 
   revalidatePath("/project/[slug]", "page");
   return { data };
@@ -707,6 +807,11 @@ export async function updateVariable(
   if (!user) {
     return { error: "Not authenticated" };
   }
+
+  const actorSnapshot = await getActorIdentitySnapshot(
+    user.id,
+    user.email || "",
+  );
 
   // Rate Limiting
   const ip = (await headers()).get("x-forwarded-for") || "unknown";
@@ -758,6 +863,9 @@ export async function updateVariable(
   const finalUpdates: Record<string, unknown> = {
     ...updates,
     last_updated_by: user.id,
+    last_updated_by_user_id_snapshot: actorSnapshot.id,
+    last_updated_by_name: actorSnapshot.name,
+    last_updated_by_email: actorSnapshot.email,
     last_updated_at: new Date().toISOString(),
   };
 
@@ -800,7 +908,7 @@ export async function updateVariable(
           `A secret was updated in <strong>${projectData.name}</strong>`,
           projectData.id,
           user.id,
-        ).catch(() => { });
+        ).catch(() => {});
       }
     }
   }
@@ -832,6 +940,8 @@ export async function updateVariable(
       ...(Object.keys(changes).length > 0 ? { changes } : {}),
     },
   });
+
+  await touchProjectActivity(projectId);
 
   revalidatePath("/project/[slug]", "page");
   return { success: true };
@@ -916,7 +1026,7 @@ export async function deleteVariable(
           `A secret was deleted from <strong>${projectData.name}</strong>`,
           projectData.id,
           user.id,
-        ).catch(() => { });
+        ).catch(() => {});
       }
     }
   }
@@ -943,6 +1053,8 @@ export async function deleteVariable(
       },
     },
   });
+
+  await touchProjectActivity(projectId);
 
   revalidatePath("/project/[slug]", "page");
   return { success: true };
@@ -973,6 +1085,11 @@ export async function addVariablesBulk(
   if (!user) {
     return { added: 0, updated: 0, skipped: 0, error: "Not authenticated" };
   }
+
+  const actorSnapshot = await getActorIdentitySnapshot(
+    user.id,
+    user.email || "",
+  );
 
   // Rate Limiting
   const ip = (await headers()).get("x-forwarded-for") || "unknown";
@@ -1032,12 +1149,18 @@ export async function addVariablesBulk(
   const itemsToUpsert: Array<{
     id: string;
     user_id: string;
+    created_by_user_id_snapshot?: string;
+    created_by_name?: string;
+    created_by_email?: string;
     project_id: string;
     environment_id: string;
     key: string;
     value: string;
     key_id: string;
     last_updated_by: string;
+    last_updated_by_user_id_snapshot?: string;
+    last_updated_by_name?: string;
+    last_updated_by_email?: string;
     last_updated_at: string;
   }> = [];
 
@@ -1052,12 +1175,18 @@ export async function addVariablesBulk(
       itemsToUpsert.push({
         id: crypto.randomUUID(),
         user_id: user.id,
+        created_by_user_id_snapshot: actorSnapshot.id,
+        created_by_name: actorSnapshot.name,
+        created_by_email: actorSnapshot.email,
         project_id: projectId,
         environment_id: environment.id,
         key: variable.key,
         value: encryptedValue,
         key_id: keyId,
         last_updated_by: user.id,
+        last_updated_by_user_id_snapshot: actorSnapshot.id,
+        last_updated_by_name: actorSnapshot.name,
+        last_updated_by_email: actorSnapshot.email,
         last_updated_at: new Date().toISOString(),
       });
     } else {
@@ -1079,6 +1208,9 @@ export async function addVariablesBulk(
             value: encryptedValue,
             key_id: keyId,
             last_updated_by: user.id,
+            last_updated_by_user_id_snapshot: actorSnapshot.id,
+            last_updated_by_name: actorSnapshot.name,
+            last_updated_by_email: actorSnapshot.email,
             last_updated_at: new Date().toISOString(),
           });
         }
@@ -1098,6 +1230,9 @@ export async function addVariablesBulk(
           value: encryptedValue,
           key_id: keyId,
           last_updated_by: user.id,
+          last_updated_by_user_id_snapshot: actorSnapshot.id,
+          last_updated_by_name: actorSnapshot.name,
+          last_updated_by_email: actorSnapshot.email,
           last_updated_at: new Date().toISOString(),
         });
       }
@@ -1113,6 +1248,8 @@ export async function addVariablesBulk(
       console.error("Bulk upsert error:", error);
       return { added: 0, updated: 0, skipped: 0, error: error.message };
     }
+
+    await touchProjectActivity(projectId);
 
     // Fire-and-forget project activity email summarising the import
     {
@@ -1139,7 +1276,7 @@ export async function addVariablesBulk(
             `Bulk import to <strong>${projectData.name}</strong> finished: ${summary}, ${skipped} unchanged.`,
             projectData.id,
             user.id,
-          ).catch(() => { });
+          ).catch(() => {});
         }
       }
     }

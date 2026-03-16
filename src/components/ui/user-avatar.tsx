@@ -31,17 +31,41 @@ export function UserAvatar({
   fallbackType: _fallbackType = "dicebear",
   ...props
 }: UserAvatarProps) {
+  const proxiedAvatar = React.useMemo(() => {
+    if (!propAvatar && !user?.avatar) return "";
+
+    const rawAvatar = propAvatar || user?.avatar || "";
+    if (!rawAvatar) return "";
+
+    // Keep internal assets and already-proxied URLs untouched.
+    if (
+      rawAvatar.startsWith("/") ||
+      rawAvatar.startsWith("data:") ||
+      rawAvatar.startsWith("blob:") ||
+      rawAvatar.startsWith("/api/avatar?")
+    ) {
+      return rawAvatar;
+    }
+
+    try {
+      const parsed = new URL(rawAvatar);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return rawAvatar;
+      }
+
+      return `/api/avatar?url=${encodeURIComponent(rawAvatar)}`;
+    } catch {
+      return rawAvatar;
+    }
+  }, [propAvatar, user?.avatar]);
+
   // Determine the values to use
   const email = propEmail || user?.email || "";
-  const avatar = propAvatar || user?.avatar || "";
+  const avatar = proxiedAvatar;
 
   // Use username if available, otherwise email for display name
   const displayName =
-    user?.username ||
-    user?.name ||
-    user?.firstName ||
-    email ||
-    "User";
+    user?.username || user?.name || user?.firstName || email || "User";
   const initials =
     displayName
       .trim()

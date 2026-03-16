@@ -45,21 +45,8 @@ export function AppHeader({
   const router = useRouter();
 
   const handleBack = () => {
-    if (typeof window === "undefined") {
-      if (backTo) router.push(backTo);
-      return;
-    }
-
-    const hasHistory = window.history.length > 1;
-    const referrer = document.referrer;
-    const isInternalReferrer =
-      !!referrer && new URL(referrer).origin === window.location.origin;
-
-    if (hasHistory && isInternalReferrer) {
-      router.back();
-      return;
-    }
-
+    // Use explicit route back targets to avoid browser-history loops when
+    // users bounce between contextual pages (e.g. project <-> audit logs).
     if (backTo) {
       router.push(backTo);
       return;

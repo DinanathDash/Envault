@@ -139,7 +139,10 @@ export function AuthForm() {
         body: JSON.stringify({ response: asseResp, sessionId }),
       });
 
-      const verification = (await verifyResp.json()) as { success?: boolean; error?: string };
+      const verification = (await verifyResp.json()) as {
+        success?: boolean;
+        error?: string;
+      };
       if (verifyResp.ok && verification.success) {
         toast.success("Signed in with Passkey");
         const next = searchParams.get("next");
@@ -273,11 +276,16 @@ export function AuthForm() {
                     className="w-full flex items-center justify-center gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors"
                   >
                     {isPasskeyLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Signing in with Passkey...
+                      </>
                     ) : (
-                      <Fingerprint className="h-4 w-4" />
+                      <>
+                        <Fingerprint className="h-4 w-4" />
+                        Sign in with Passkey
+                      </>
                     )}
-                    Sign in with Passkey
                   </Button>
                 </div>
 

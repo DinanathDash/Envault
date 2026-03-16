@@ -136,11 +136,13 @@ function getBeneficiaryLabel(metadata?: AuditLogMetadata): string | null {
 
 function getActionIcon(action: string) {
   if (action === "secret.created") return <KeyRound className="h-3.5 w-3.5" />;
-  if (action === "secret.updated") return <ShieldCheck className="h-3.5 w-3.5" />;
+  if (action === "secret.updated")
+    return <ShieldCheck className="h-3.5 w-3.5" />;
   if (action === "secret.deleted") return <Trash2 className="h-3.5 w-3.5" />;
   if (action === "secret.read_batch") return <Eye className="h-3.5 w-3.5" />;
   if (action === "member.invited") return <UserPlus className="h-3.5 w-3.5" />;
-  if (action === "member.role_updated") return <UserCog className="h-3.5 w-3.5" />;
+  if (action === "member.role_updated")
+    return <UserCog className="h-3.5 w-3.5" />;
   if (action === "member.removed") return <UserMinus className="h-3.5 w-3.5" />;
   if (action === "environment.access_updated")
     return <RefreshCw className="h-3.5 w-3.5" />;
@@ -170,7 +172,10 @@ function normalizeEnvValue(value: unknown): string[] | "all" | null {
 
 type EnvAccessState = "none" | "some" | "all" | "unknown";
 
-function getEnvAccessState(value: unknown): { state: EnvAccessState; key: string } {
+function getEnvAccessState(value: unknown): {
+  state: EnvAccessState;
+  key: string;
+} {
   const normalized = normalizeEnvValue(value);
   if (normalized === "all") {
     return { state: "all", key: "all" };
@@ -187,7 +192,11 @@ function getEnvAccessState(value: unknown): { state: EnvAccessState; key: string
 
 function getEnvironmentActionVariant(
   log: AuditLog,
-): "environment.access_granted" | "environment.access_revoked" | "environment.access_updated" | null {
+):
+  | "environment.access_granted"
+  | "environment.access_revoked"
+  | "environment.access_updated"
+  | null {
   if (
     log.action !== "environment.access_granted" &&
     log.action !== "environment.access_revoked"
@@ -225,17 +234,31 @@ function getEffectiveAction(log: AuditLog): string {
 }
 
 function isMemberRelatedAction(action: string): boolean {
-  return action.startsWith("member.") || action.startsWith("environment.access_");
+  return (
+    action.startsWith("member.") || action.startsWith("environment.access_")
+  );
 }
 
 function getActionBadgeClass(action: string): string {
-  if (action.includes("deleted") || action.includes("removed") || action.includes("revoked")) {
+  if (
+    action.includes("deleted") ||
+    action.includes("removed") ||
+    action.includes("revoked")
+  ) {
     return "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300";
   }
-  if (action.includes("updated") || action.includes("read_batch") || action.includes("role_updated")) {
+  if (
+    action.includes("updated") ||
+    action.includes("read_batch") ||
+    action.includes("role_updated")
+  ) {
     return "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300";
   }
-  if (action.includes("created") || action.includes("invited") || action.includes("granted")) {
+  if (
+    action.includes("created") ||
+    action.includes("invited") ||
+    action.includes("granted")
+  ) {
     return "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
   }
   return "border-muted-foreground/20 bg-muted text-muted-foreground";
@@ -245,7 +268,9 @@ function getDetailSummary(
   changeEntries: Array<[string, AuditLogChange]>,
   keyName?: string,
 ): string | null {
-  const allowedEnvsChange = changeEntries.find(([field]) => field === "allowed_environments");
+  const allowedEnvsChange = changeEntries.find(
+    ([field]) => field === "allowed_environments",
+  );
   if (allowedEnvsChange) {
     return `Allowed Environments: ${formatDiffValue(allowedEnvsChange[1].old)} to ${formatDiffValue(allowedEnvsChange[1].new)}`;
   }
@@ -283,7 +308,9 @@ function getNonDiffContextSummary(
     typeof metadata?.count === "number" && Number.isFinite(metadata.count)
       ? metadata.count
       : null;
-  const environment = metadata?.environment ? String(metadata.environment) : null;
+  const environment = metadata?.environment
+    ? String(metadata.environment)
+    : null;
   const source =
     metadata?.source === "cli"
       ? "CLI"
@@ -299,13 +326,15 @@ function getNonDiffContextSummary(
 
   if (action === "secret.created") {
     if (keyName) return `Created secret key: ${keyName}`;
-    if (count !== null) return `Created ${count} secret(s)${envPart}${sourcePart}`;
+    if (count !== null)
+      return `Created ${count} secret(s)${envPart}${sourcePart}`;
     return `Secret created${envPart}${sourcePart}`;
   }
 
   if (action === "secret.updated") {
     if (keyName) return `Updated secret key: ${keyName}`;
-    if (count !== null) return `Updated ${count} secret(s)${envPart}${sourcePart}`;
+    if (count !== null)
+      return `Updated ${count} secret(s)${envPart}${sourcePart}`;
     return `Secret updated${envPart}${sourcePart}`;
   }
 
@@ -396,7 +425,9 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
           throw new Error("Too many requests. Please wait a moment.");
         }
         if (res.status === 403 || res.status === 401) {
-          throw new Error("You do not have access to this project's audit logs.");
+          throw new Error(
+            "You do not have access to this project's audit logs.",
+          );
         }
         throw new Error("Failed to load audit logs");
       }
@@ -515,9 +546,12 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
           <div className="rounded-full bg-muted p-3 mb-4">
             <AlertCircle className="h-6 w-6 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-foreground mb-1">No Audit Logs Found</h3>
+          <h3 className="text-lg font-medium text-foreground mb-1">
+            No Audit Logs Found
+          </h3>
           <p className="text-sm text-muted-foreground max-w-sm">
-            There has been no recorded activity in this project yet. Actions like adding or deleting secrets will appear here.
+            There has been no recorded activity in this project yet. Actions
+            like adding or deleting secrets will appear here.
           </p>
         </div>
       </div>
@@ -533,8 +567,12 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
               <TableHead className="w-[40px]" />
-              <TableHead className="w-[190px] whitespace-nowrap">Timestamp</TableHead>
-              <TableHead className="w-[170px] whitespace-nowrap">Action</TableHead>
+              <TableHead className="w-[190px] whitespace-nowrap">
+                Timestamp
+              </TableHead>
+              <TableHead className="w-[170px] whitespace-nowrap">
+                Action
+              </TableHead>
               <TableHead className="w-[240px] min-w-[180px]">Actor</TableHead>
               <TableHead className="min-w-[260px]">Details</TableHead>
             </TableRow>
@@ -550,7 +588,11 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
               const effectiveAction = getEffectiveAction(log);
               const actionText = getActionLabel(effectiveAction);
               const detailsSummary =
-                getNonDiffContextSummary(effectiveAction, log.metadata, keyName) ||
+                getNonDiffContextSummary(
+                  effectiveAction,
+                  log.metadata,
+                  keyName,
+                ) ||
                 (!canExpand ? getDetailSummary(changeEntries, keyName) : null);
               const shouldShowAffectedUser =
                 isMemberRelatedAction(effectiveAction) && Boolean(affectedUser);
@@ -562,7 +604,9 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                       {canExpand ? (
                         <button
                           type="button"
-                          aria-label={isExpanded ? "Collapse diff" : "Expand diff"}
+                          aria-label={
+                            isExpanded ? "Collapse diff" : "Expand diff"
+                          }
                           onClick={() => toggleRow(log.id)}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted"
                         >
@@ -575,14 +619,19 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                       ) : null}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">
-                      <DateDisplay date={log.created_at} formatType="absolute" />
+                      <DateDisplay
+                        date={log.created_at}
+                        formatType="absolute"
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
                         className={`font-mono font-medium text-[10px] uppercase whitespace-nowrap border ${getActionBadgeClass(effectiveAction)}`}
                       >
-                        <span className="mr-1 inline-flex">{getActionIcon(effectiveAction)}</span>
+                        <span className="mr-1 inline-flex">
+                          {getActionIcon(effectiveAction)}
+                        </span>
                         {actionText}
                       </Badge>
                     </TableCell>
@@ -597,9 +646,15 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                           }}
                         />
                         <div className="flex flex-col truncate min-w-0">
-                          <span className="font-medium text-foreground truncate">{log.actor_name || "Former Member"}</span>
+                          <span className="font-medium text-foreground truncate">
+                            {log.actor_name ||
+                              log.actor_email ||
+                              "Former Member"}
+                          </span>
                           {log.actor_email && (
-                            <span className="text-xs text-muted-foreground truncate">{log.actor_email}</span>
+                            <span className="text-xs text-muted-foreground truncate">
+                              {log.actor_email}
+                            </span>
                           )}
                           {log.actor_type === "machine" && (
                             <span className="text-xs text-muted-foreground font-mono truncate">
@@ -613,13 +668,16 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                       <div className="flex flex-col gap-1">
                         {shouldShowAffectedUser && (
                           <span className="inline-flex items-center gap-1">
-                            <UserRound className="h-3.5 w-3.5" /> Affected User: {affectedUser}
+                            <UserRound className="h-3.5 w-3.5" /> Affected User:{" "}
+                            {affectedUser}
                           </span>
                         )}
                         {detailsSummary ? (
                           <span>{detailsSummary}</span>
                         ) : (
-                          <span>{canExpand ? "Expand row to view changes" : "-"}</span>
+                          <span>
+                            {canExpand ? "Expand row to view changes" : "-"}
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -630,17 +688,23 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                       <TableCell colSpan={5}>
                         <div className="py-2 pl-10 pr-2 space-y-2">
                           {changeEntries.map(([field, change]) => (
-                            <div key={field} className="text-sm flex flex-wrap items-center gap-2">
+                            <div
+                              key={field}
+                              className="text-sm flex flex-wrap items-center gap-2"
+                            >
                               <span className="font-medium text-foreground">
                                 {formatFieldLabel(field, keyName)}:
                               </span>
-                              {field === "value" && isRedactedPair(change.old, change.new) ? (
+                              {field === "value" &&
+                              isRedactedPair(change.old, change.new) ? (
                                 <span className="inline-flex items-center gap-1 text-muted-foreground font-medium">
                                   Value updated
                                 </span>
                               ) : (
                                 <>
-                                  <span className="text-muted-foreground line-through">{formatDiffValue(change.old)}</span>
+                                  <span className="text-muted-foreground line-through">
+                                    {formatDiffValue(change.old)}
+                                  </span>
                                   <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                                   <span className="text-foreground font-medium">
                                     {formatDiffValue(change.new)}
@@ -668,8 +732,8 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
           const canExpand = changeEntries.length > 0;
           const isExpanded = expandedRows.has(log.id);
           const affectedUser = getBeneficiaryLabel(log.metadata);
-              const effectiveAction = getEffectiveAction(log);
-              const actionText = getActionLabel(effectiveAction);
+          const effectiveAction = getEffectiveAction(log);
+          const actionText = getActionLabel(effectiveAction);
           const detailsSummary =
             getNonDiffContextSummary(effectiveAction, log.metadata, keyName) ||
             (!canExpand ? getDetailSummary(changeEntries, keyName) : null);
@@ -677,7 +741,10 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
             isMemberRelatedAction(effectiveAction) && Boolean(affectedUser);
 
           return (
-            <div key={log.id} className="p-4 bg-card rounded-xl border shadow-sm flex flex-col gap-3">
+            <div
+              key={log.id}
+              className="p-4 bg-card rounded-xl border shadow-sm flex flex-col gap-3"
+            >
               <div className="flex flex-wrap justify-between items-start gap-2">
                 <div className="flex items-center gap-2">
                   {canExpand ? (
@@ -698,7 +765,9 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                     variant="secondary"
                     className={`font-mono font-medium text-[10px] uppercase border ${getActionBadgeClass(effectiveAction)}`}
                   >
-                    <span className="mr-1 inline-flex">{getActionIcon(effectiveAction)}</span>
+                    <span className="mr-1 inline-flex">
+                      {getActionIcon(effectiveAction)}
+                    </span>
                     {actionText}
                   </Badge>
                 </div>
@@ -717,11 +786,19 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                   }}
                 />
                 <div className="flex flex-col min-w-0">
-                  <span className="font-medium text-sm text-foreground truncate">{log.actor_name || "Former Member"}</span>
+                  <span className="font-medium text-sm text-foreground truncate">
+                    {log.actor_name || log.actor_email || "Former Member"}
+                  </span>
                   <div className="flex items-center gap-2 text-xs truncate">
-                    {log.actor_email && <span className="text-muted-foreground truncate">{log.actor_email}</span>}
+                    {log.actor_email && (
+                      <span className="text-muted-foreground truncate">
+                        {log.actor_email}
+                      </span>
+                    )}
                     {log.actor_type === "machine" && (
-                      <span className="text-muted-foreground font-mono truncate">Service Token</span>
+                      <span className="text-muted-foreground font-mono truncate">
+                        Service Token
+                      </span>
                     )}
                   </div>
                 </div>
@@ -731,26 +808,37 @@ export function AuditLogsView({ projectId }: AuditLogsViewProps) {
                 <div className="text-sm text-muted-foreground space-y-1">
                   {shouldShowAffectedUser && (
                     <div className="inline-flex items-center gap-1">
-                      <UserRound className="h-3.5 w-3.5" /> Affected User: {affectedUser}
+                      <UserRound className="h-3.5 w-3.5" /> Affected User:{" "}
+                      {affectedUser}
                     </div>
                   )}
                   {detailsSummary ? <div>{detailsSummary}</div> : null}
-                  {!detailsSummary && canExpand ? <div>Expand row to view changes</div> : null}
+                  {!detailsSummary && canExpand ? (
+                    <div>Expand row to view changes</div>
+                  ) : null}
                 </div>
               )}
 
               {canExpand && isExpanded && (
                 <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
                   {changeEntries.map(([field, change]) => (
-                    <div key={field} className="text-sm flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-foreground">{formatFieldLabel(field, keyName)}:</span>
-                      {field === "value" && isRedactedPair(change.old, change.new) ? (
+                    <div
+                      key={field}
+                      className="text-sm flex flex-wrap items-center gap-2"
+                    >
+                      <span className="font-medium text-foreground">
+                        {formatFieldLabel(field, keyName)}:
+                      </span>
+                      {field === "value" &&
+                      isRedactedPair(change.old, change.new) ? (
                         <span className="inline-flex items-center gap-1 text-muted-foreground font-medium">
                           Value updated
                         </span>
                       ) : (
                         <>
-                          <span className="text-muted-foreground line-through">{formatDiffValue(change.old)}</span>
+                          <span className="text-muted-foreground line-through">
+                            {formatDiffValue(change.old)}
+                          </span>
                           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="text-foreground font-medium">
                             {formatDiffValue(change.new)}

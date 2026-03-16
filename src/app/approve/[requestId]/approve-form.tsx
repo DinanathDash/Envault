@@ -47,9 +47,9 @@ export function ApproveForm({
     return merged.filter((env) => environments.includes(env));
   }, [environments, existingAllowedEnvironments, requestedEnvironment]);
 
-  const [selectedEnvironments, setSelectedEnvironments] = React.useState<string[]>(
-    () => getInitialSelectedEnvironments(),
-  );
+  const [selectedEnvironments, setSelectedEnvironments] = React.useState<
+    string[]
+  >(() => getInitialSelectedEnvironments());
 
   React.useEffect(() => {
     setRole(existingRole);
@@ -57,8 +57,21 @@ export function ApproveForm({
   }, [existingRole, getInitialSelectedEnvironments]);
 
   const handleApprove = async () => {
+    if (environments.length > 0 && selectedEnvironments.length === 0) {
+      toast.error("Select at least one environment before approving access.");
+      return;
+    }
+
+    const environmentPayload =
+      environments.length > 0 ? selectedEnvironments : undefined;
+
     setIsApproving(true);
-    const result = await approveRequest(requestId, role, true, selectedEnvironments);
+    const result = await approveRequest(
+      requestId,
+      role,
+      true,
+      environmentPayload,
+    );
     if (result.error) {
       toast.error(result.error);
       setIsApproving(false);
@@ -97,7 +110,10 @@ export function ApproveForm({
               {environments.map((env) => {
                 const isChecked = selectedEnvironments.includes(env);
                 return (
-                  <div key={`approve-${requestId}-${env}`} className="flex items-center space-x-2">
+                  <div
+                    key={`approve-${requestId}-${env}`}
+                    className="flex items-center space-x-2"
+                  >
                     <Checkbox
                       id={`approve-${requestId}-${env}`}
                       className="rounded border-1"
@@ -107,7 +123,9 @@ export function ApproveForm({
                         if (checked) {
                           nextEnvs = [...selectedEnvironments, env];
                         } else {
-                          nextEnvs = selectedEnvironments.filter((e) => e !== env);
+                          nextEnvs = selectedEnvironments.filter(
+                            (e) => e !== env,
+                          );
                         }
                         setSelectedEnvironments(nextEnvs);
                       }}

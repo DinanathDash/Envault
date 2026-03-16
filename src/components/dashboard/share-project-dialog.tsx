@@ -375,7 +375,7 @@ export function ShareProjectDialog({
           case "approve": {
             const res = await approveRequest(
               change.requestId!,
-              "viewer",
+                change.newRole || "viewer",
               true,
               change.allowedEnvironments
             );

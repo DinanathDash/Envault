@@ -56,3 +56,11 @@ export const auditWriteRateLimit = new Ratelimit({
   analytics: true,
   prefix: "@upstash/ratelimit/audit_write",
 });
+
+// Avatar proxy: generous read limit to protect upstream providers from burst fetches
+export const avatarProxyRateLimit = new Ratelimit({
+  redis: getRedisClient(),
+  limiter: Ratelimit.slidingWindow(20, "1 m"),
+  analytics: true,
+  prefix: "@upstash/ratelimit/avatar_proxy",
+});
