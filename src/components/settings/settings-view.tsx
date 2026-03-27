@@ -517,14 +517,15 @@ export default function SettingsView() {
                       Delete Account
                     </CardTitle>
                     <CardDescription>
-                      Permanently remove your account and all data.
+                      Schedule your account and all data for deletion in 7 days.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      This action is irreversible. All your projects,
-                      environment variables, and personal data will be
-                      permanently deleted.
+                      When you confirm deletion, your account will be marked
+                      for removal and you will be logged out immediately. If
+                      you sign back in within 7 days, the deletion request
+                      will be automatically cancelled.
                     </p>
                   </CardContent>
                   <CardFooter>

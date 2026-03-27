@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { authRateLimit } from "@/lib/infra/ratelimit";
-import { logAuditEvent } from "@/lib/system/audit-logger";
+import { sendSecurityAlertEmail } from "@/lib/infra/email";
 
 function resolveAuthBaseUrl(headersList: Headers): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -118,6 +118,28 @@ export async function signInWithPassword(formData: FormData) {
     return { error: error.message };
   }
 
+  // If the account was previously scheduled for deletion, logging in within
+  // the grace period should cancel that request.
+  try {
+    const { data: userResult } = await supabase.auth.getUser();
+    const authedUser = userResult?.user;
+    if (authedUser) {
+      const { createAdminClient } = await import("@/lib/supabase/admin");
+      const adminSupabase = createAdminClient();
+
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        .toISOString();
+
+      await adminSupabase
+        .from("profiles")
+        .update({ deletion_scheduled_at: null })
+        .eq("id", authedUser.id)
+        .gte("deletion_scheduled_at", sevenDaysAgo);
+    }
+  } catch (e) {
+    console.error("Failed to clear scheduled deletion on login:", e);
+  }
+
   if (next && next.startsWith("/")) {
     redirect(next);
   }
@@ -192,121 +214,33 @@ export async function deleteAccountAction() {
   const actorDisplayName =
     actorName || actorEmail?.split("@")[0] || `user-${user.id.slice(0, 8)}`;
 
-  // 0. Reassign shared ownership references before deleting the auth user.
-  const { error: preparationError } = await adminSupabase.rpc(
-    "prepare_user_account_deletion",
-    {
-      p_user_id: user.id,
-      p_actor_name: actorName,
-      p_actor_email: actorEmail,
-    },
-  );
+  // Schedule soft deletion instead of immediately removing the account.
+  const { error: scheduleError } = await adminSupabase
+    .from("profiles")
+    .update({ deletion_scheduled_at: new Date().toISOString() })
+    .eq("id", user.id);
 
-  if (preparationError) {
-    console.error(
-      "Error preparing account deletion (reassignment/audit snapshot):",
-      preparationError,
-    );
+  if (scheduleError) {
+    console.error("Error scheduling account deletion:", scheduleError);
     return {
       error:
-        "Failed to prepare account deletion safely. Please try again or contact support.",
+        "Failed to schedule account deletion. Please try again or contact support.",
     };
   }
 
-  // 0.5. Emit membership removal audit events before membership rows are deleted
-  // so project owners have a clear trail that this member account was deleted.
-  const { data: memberships } = await adminSupabase
-    .from("project_members")
-    .select("project_id, projects!inner(name)")
-    .eq("user_id", user.id);
-
-  if (memberships && memberships.length > 0) {
-    await Promise.allSettled(
-      memberships.map((membership) => {
-        const projectName =
-          (membership.projects as unknown as { name?: string })?.name ||
-          "Project";
-
-        return logAuditEvent({
-          projectId: membership.project_id,
-          actorId: user.id,
-          actorType: "user",
-          action: "member.removed",
-          targetResourceId: user.id,
-          metadata: {
-            actor_name: actorDisplayName,
-            actor_email: actorEmail || "",
-            member_user_id: user.id,
-            beneficiary_user_id: user.id,
-            beneficiary_name: actorDisplayName,
-            beneficiary_email: actorEmail || "",
-            project_name: projectName,
-            reason: "account_deleted",
-            initiated_by: "self",
-          },
-        });
-      }),
+  // Fire-and-forget security email about the scheduled deletion.
+  if (actorEmail) {
+    void sendSecurityAlertEmail(
+      actorEmail,
+      "Account Scheduled for Deletion",
+      "You requested to delete your Envault account. Your account is now scheduled for deletion in 7 days. If you sign back in before then, the deletion will be automatically cancelled.",
+      user.id,
+      "/settings",
     );
   }
 
-  // 1. Clean up user memberships and shared access
-  // We must clean these up explicitly because they might be on projects/secrets NOT owned by the user,
-  // or the foreign keys might not be set to CASCADE for these specific relationships.
-
-  // Access Requests (where user is requesting access)
-  const { error: reqError } = await adminSupabase
-    .from("access_requests")
-    .delete()
-    .eq("user_id", user.id);
-  if (reqError) console.error("Error deleting access requests:", reqError);
-
-  // Secret Shares (where user is a viewer)
-  const { error: shareError } = await adminSupabase
-    .from("secret_shares")
-    .delete()
-    .eq("user_id", user.id);
-  if (shareError) console.error("Error deleting secret shares:", shareError);
-
-  // Project Members (where user is a member)
-  const { error: memberError } = await adminSupabase
-    .from("project_members")
-    .delete()
-    .eq("user_id", user.id);
-  if (memberError)
-    console.error("Error deleting project memberships:", memberError);
-
-  // Secrets (where user updated them but doesn't own them)
-  // We must NULL out the reference, otherwise we can't delete the user.
-  // We do NOT want to delete the secret itself as it belongs to someone else.
-  const { error: updatedByError } = await adminSupabase
-    .from("secrets")
-    .update({ last_updated_by: null })
-    .eq("last_updated_by", user.id);
-
-  if (updatedByError)
-    console.error("Error nullifying updated_by:", updatedByError);
-
-  // 2. Delete user's projects
-  const { error: projectsError } = await adminSupabase
-    .from("projects")
-    .delete()
-    .eq("user_id", user.id);
-
-  if (projectsError) {
-    console.error("Error deleting user projects:", projectsError);
-    return { error: "Failed to clean up user data (projects)" };
-  }
-
-  // 3. Delete the user account
-  const { error } = await adminSupabase.auth.admin.deleteUser(user.id);
-
-  if (error) {
-    console.error("Error deleting user:", error);
-    return { error: error.message };
-  }
-
   await supabase.auth.signOut();
-  redirect("/?accountDeleted=true");
+  redirect("/?accountDeletionScheduled=true");
 }
 
 export async function forgotPassword(formData: FormData) {
