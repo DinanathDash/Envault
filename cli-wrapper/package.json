@@ -1,6 +1,6 @@
 {
   "name": "@dinanathdash/envault",
-  "version": "1.27.0",
+  "version": "1.28.0",
   "description": "Envault CLI - Securely manage your environment variables",
   "bin": {
     "envault": "bin/envault"
