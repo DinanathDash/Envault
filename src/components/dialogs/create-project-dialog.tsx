@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Plus, CornerDownLeft } from "lucide-react";
+import { Loader2, Plus, CornerDownLeft, Command } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -187,7 +187,9 @@ export function CreateProjectDialog({
               )}
               Create Project
               <div className="ml-2 flex items-center gap-1">
-                <Kbd className="bg-white/20 text-white border-0">⌘</Kbd>
+                <Kbd className="bg-white/20 text-white border-0">
+                  <Command className="w-3 h-3" />
+                </Kbd>
                 <Kbd className="bg-white/20 text-white border-0">
                   <CornerDownLeft className="w-3 h-3" />
                 </Kbd>

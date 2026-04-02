@@ -66,7 +66,7 @@ func Login() error {
 		return fmt.Errorf("failed to parse device code response: %w", err)
 	}
 	s.Stop()
-	fmt.Println(ui.ColorGreen("✔ Device code generated."))
+	fmt.Println(ui.ColorGreen("[OK] Device code generated."))
 
 	fmt.Printf("\nPlease visit: %s\n", ui.ColorCyanUnderline(codeResp.VerificationURI))
 
@@ -169,7 +169,7 @@ func Login() error {
 			}
 
 			s.Stop()
-			fmt.Println(ui.ColorGreen("✔ Successfully authenticated! Token saved."))
+			fmt.Println(ui.ColorGreen("[OK] Successfully authenticated! Token saved."))
 			if email != "" {
 				fmt.Printf("Logged in as: %s\n", ui.ColorBold(email))
 			}

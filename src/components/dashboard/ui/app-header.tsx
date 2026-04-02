@@ -9,6 +9,8 @@ import {
   Keyboard,
   Activity,
   ArrowLeft,
+  LayoutDashboard,
+  Bell,
 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
@@ -75,7 +77,7 @@ export function AppHeader({
             </Button>
           ) : (
             !title && (
-              <Link href="/dashboard" className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <ShieldCheck className="w-6 h-6 text-primary" />
                 <span className="font-bold text-2xl font-serif">Envault</span>
               </Link>
@@ -160,6 +162,32 @@ export function AppHeader({
                   <DropdownMenuSeparator />
                 </>
               )}
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/dashboard"
+                  className="cursor-pointer flex w-full items-center"
+                >
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                  <div className="ml-auto hidden md:flex items-center gap-1">
+                    <Kbd size="xs">G</Kbd>
+                    <Kbd size="xs">H</Kbd>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/notifications"
+                  className="cursor-pointer flex w-full items-center"
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>Notifications</span>
+                  <div className="ml-auto hidden md:flex items-center gap-1">
+                    <Kbd size="xs">G</Kbd>
+                    <Kbd size="xs">L</Kbd>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   href="/settings"

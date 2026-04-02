@@ -12,7 +12,7 @@ All notable changes to Envault are documented here.
 
 ## 1.6.1 - 2026-04-01
 
-> Authors: Dinanath Dash (DinanathDash), Rajat Patra (RawJat)
+> Authors: Rajat Patra (RawJat)
 
 ### Improvements & Accessibility
 
@@ -249,7 +249,7 @@ All notable changes to Envault are documented here.
 
 - **Keyboard-First Navigation:** Implemented a comprehensive, conflict-free hotkey system across the entire application with configurable bindings and a visual shortcut reference.
 - **`Kbd` Hints:** Added inline keyboard shortcut hints (`<Kbd>`) throughout the UI so users can discover shortcuts contextually.
-- **Global Search Dialog:** Introduced a `⌘ + K` command palette for instant navigation across projects and settings.
+- **Global Search Dialog:** Introduced a <Kbd showOnMobile size="xs"><Command className="w-3 h-3" /></Kbd> + <Kbd showOnMobile size="xs">K</Kbd> command palette for instant navigation across projects and settings.
 - **Notification System:** Built a full notification system with database schema, real-time subscription via Supabase, dedicated UI panel, and skeleton loaders.
 - **Redis Permissions Caching:** Introduced Redis-backed caching for role/permission lookups, significantly reducing database load for high-frequency access control checks.
 - **CLI `init` Refactor:** Reworked the CLI `init` command to offer interactive project selection and improved device authentication window lifecycle management.

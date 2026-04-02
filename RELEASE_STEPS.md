@@ -27,7 +27,7 @@ These are independent and should be bumped only when that surface changes.
 
 Use this when web/app features change.
 
-1. Update changelog manually in [`CHANGELOG.md`](./CHANGELOG.md):
+1. Update changelog manually in [`CHANGELOG.mdx`](./CHANGELOG.mdx):
    - Move `Unreleased` items into a real version heading (example: `## 1.3.0 - 2026-03-10`).
 2. Bump app version in root:
 
@@ -38,7 +38,7 @@ npm version <major|minor|patch> --no-git-tag-version
 3. Review and commit:
 
 ```bash
-git add CHANGELOG.md package.json package-lock.json
+git add CHANGELOG.mdx package.json package-lock.json
 git commit -m "chore(app-release): bump app version to X.Y.Z"
 git push origin main
 ```
@@ -72,7 +72,7 @@ Guardrail: if commits since the last CLI tag include non-CLI file changes, the C
 
 Do both tracks in one PR, but only app versioning is manual:
 
-1. Update `CHANGELOG.md` for app.
+1. Update `CHANGELOG.mdx` for app.
 2. Bump root app version if app changed.
 3. Commit and push to `main`.
 4. If CLI files changed in that push, CLI release runs automatically.

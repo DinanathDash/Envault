@@ -58,10 +58,10 @@ var auditCmd = &cobra.Command{
 	Long: `Validate the structural integrity and git status of local environment files.
 
 Checks performed:
-  • .gitignore contains patterns that exclude .env files
-  • No .env files (non-templates) are tracked in the git tree
-  • Local .env keys match the template (.env.example by default)
-  • No keys have empty or placeholder values
+  - .gitignore contains patterns that exclude .env files
+  - No .env files (non-templates) are tracked in the git tree
+  - Local .env keys match the template (.env.example by default)
+  - No keys have empty or placeholder values
 
 Use --install-hook to embed this audit into the local git pre-commit hook.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -82,7 +82,7 @@ func init() {
 	auditCmd.Flags().StringVar(&auditEnvFile, "file", ".env", "Local env file to audit")
 }
 
-// ─── Hook Installation ────────────────────────────────────────────────────────
+// --- Hook Installation --------------------------------------------------------
 
 const hookMarker = "# envault-audit-hook"
 
@@ -166,22 +166,22 @@ func runInstallHook() {
 	alreadyInstalled, binPath, err := installPreCommitHook()
 	if err != nil {
 		if strings.Contains(err.Error(), "no .git directory") {
-			fmt.Fprintln(os.Stderr, ui.ColorRed("✖ No .git directory found. Run this command from the root of a git repository."))
+			fmt.Fprintln(os.Stderr, ui.ColorRed("[X] No .git directory found. Run this command from the root of a git repository."))
 		} else {
-			fmt.Fprintln(os.Stderr, ui.ColorRed(fmt.Sprintf("✖ %v", err)))
+			fmt.Fprintln(os.Stderr, ui.ColorRed(fmt.Sprintf("[X] %v", err)))
 		}
 		os.Exit(1)
 	}
 	if alreadyInstalled {
-		fmt.Println(ui.ColorYellow("ℹ envault audit hook is already installed in .git/hooks/pre-commit"))
+		fmt.Println(ui.ColorYellow("[i] envault audit hook is already installed in .git/hooks/pre-commit"))
 		return
 	}
-	fmt.Println(ui.ColorGreen("✔ Pre-commit hook installed at .git/hooks/pre-commit"))
+	fmt.Println(ui.ColorGreen("[OK] Pre-commit hook installed at .git/hooks/pre-commit"))
 	fmt.Printf("%s  %s\n", ui.ColorDim("  Binary:"), ui.ColorCyan(binPath))
 	fmt.Println(ui.ColorDim("  envault audit --strict will run automatically before each commit."))
 }
 
-// ─── Audit Runner ─────────────────────────────────────────────────────────────
+// --- Audit Runner -------------------------------------------------------------
 
 func runAudit() {
 	var issues []AuditIssue
@@ -230,7 +230,7 @@ func runAudit() {
 	}
 }
 
-// ─── Check: .gitignore ────────────────────────────────────────────────────────
+// --- Check: .gitignore --------------------------------------------------------
 
 func checkGitignore() []AuditIssue {
 	f, err := os.Open(".gitignore")
@@ -265,7 +265,7 @@ func checkGitignore() []AuditIssue {
 	}}
 }
 
-// ─── Check: tracked .env files ───────────────────────────────────────────────
+// --- Check: tracked .env files -----------------------------------------------
 
 func checkTrackedEnvFiles() []AuditIssue {
 	out, err := exec.Command("git", "ls-files").Output()
@@ -317,7 +317,7 @@ func isTrackedEnvFile(name string) bool {
 	return true
 }
 
-// ─── Shared safety helpers ────────────────────────────────────────────────────
+// --- Shared safety helpers ----------------------------------------------------
 
 // isTrackedByGit returns true if path is currently tracked in the git index.
 // Returns false when git is unavailable or the working directory has no repo.
@@ -385,7 +385,7 @@ func ensureGitignoreEntry(filename string) (added bool, err error) {
 	return true, nil
 }
 
-// ─── Check: parity with template ─────────────────────────────────────────────
+// --- Check: parity with template ---------------------------------------------
 
 func checkParity() []AuditIssue {
 	// 1. Attempt to read the template file.
@@ -504,7 +504,7 @@ func checkParity() []AuditIssue {
 	return issues
 }
 
-// ─── Text Renderer ────────────────────────────────────────────────────────────
+// --- Text Renderer ------------------------------------------------------------
 
 // issueSection maps each code to its display section.
 var issueSection = map[string]string{
@@ -531,7 +531,7 @@ var sectionOrder = []struct {
 
 func printAuditResult(result AuditResult) {
 	const sepLen = 56
-	sep := ui.ColorDim(strings.Repeat("─", sepLen))
+	sep := ui.ColorDim(strings.Repeat("-", sepLen))
 
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
@@ -549,9 +549,9 @@ func printAuditResult(result AuditResult) {
 
 	if len(result.Issues) == 0 {
 		fmt.Println()
-		fmt.Printf("  %s\n\n", ui.ColorGreen("✔  All checks passed. No issues found."))
+		fmt.Printf("  %s\n\n", ui.ColorGreen("[OK]  All checks passed. No issues found."))
 		fmt.Println(sep)
-		fmt.Printf("  %s\n", lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#34D399")).Render("✔  PASSED"))
+		fmt.Printf("  %s\n", lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#34D399")).Render("[OK]  PASSED"))
 		fmt.Println(sep)
 		fmt.Println()
 		return
@@ -589,21 +589,21 @@ func printAuditResult(result AuditResult) {
 			var icon, badge, msg string
 			switch issue.Level {
 			case "error":
-				icon = ui.ColorRed("✖")
+				icon = ui.ColorRed("[X]")
 				badge = lipgloss.NewStyle().
 					Bold(true).
 					Foreground(lipgloss.Color("#F87171")).
 					Render(issue.Code)
 				msg = ui.ColorRed(issue.Message)
 			case "warning":
-				icon = ui.ColorYellow("⚠")
+				icon = ui.ColorYellow("[!]")
 				badge = lipgloss.NewStyle().
 					Bold(true).
 					Foreground(lipgloss.Color("#FBBF24")).
 					Render(issue.Code)
 				msg = ui.ColorYellow(issue.Message)
 			default:
-				icon = ui.ColorBlue("ℹ")
+				icon = ui.ColorBlue("[i]")
 				badge = lipgloss.NewStyle().
 					Bold(true).
 					Foreground(lipgloss.Color("#60A5FA")).
@@ -616,7 +616,7 @@ func printAuditResult(result AuditResult) {
 			if len(issue.Keys) > 0 {
 				fmt.Println()
 				for _, k := range issue.Keys {
-					fmt.Printf("       %s  %s\n", ui.ColorDim("·"), k)
+					fmt.Printf("       %s  %s\n", ui.ColorDim("-"), k)
 				}
 			}
 			fmt.Println()
@@ -627,14 +627,14 @@ func printAuditResult(result AuditResult) {
 	if result.Passed {
 		passStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#34D399"))
 		fmt.Printf("  %s   %s\n",
-			passStyle.Render("✔  PASSED"),
-			ui.ColorDim(fmt.Sprintf("%d errors · %d warnings", result.Summary.Errors, result.Summary.Warnings)),
+			passStyle.Render("[OK]  PASSED"),
+			ui.ColorDim(fmt.Sprintf("%d errors - %d warnings", result.Summary.Errors, result.Summary.Warnings)),
 		)
 	} else {
 		failStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#F87171"))
 		fmt.Printf("  %s   %s\n",
-			failStyle.Render("✖  FAILED"),
-			ui.ColorDim(fmt.Sprintf("%d errors · %d warnings", result.Summary.Errors, result.Summary.Warnings)),
+			failStyle.Render("[X]  FAILED"),
+			ui.ColorDim(fmt.Sprintf("%d errors - %d warnings", result.Summary.Errors, result.Summary.Warnings)),
 		)
 	}
 	fmt.Println(sep)
@@ -651,13 +651,13 @@ func sanitizeParseErr(err error) string {
 		// spot which character caused the issue without a wall of text.
 		suffix := msg[idx+6:] // skip " near "
 		if len(suffix) > 60 {
-			suffix = suffix[:60] + "…"
+			suffix = suffix[:60] + "..."
 		}
 		return msg[:idx] + ` near "` + suffix + `"`
 	}
 	const maxLen = 120
 	if len(msg) > maxLen {
-		return msg[:maxLen] + "…"
+		return msg[:maxLen] + "..."
 	}
 	return msg
 }

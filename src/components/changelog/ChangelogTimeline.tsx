@@ -1,24 +1,47 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence, useScroll, useSpring, useVelocity, useMotionValue, useAnimationFrame, useMotionTemplate } from "framer-motion";
-import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useSpring,
+  useVelocity,
+  useMotionValue,
+  useAnimationFrame,
+  useMotionTemplate,
+} from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  Command as CommandIcon,
+  CornerDownLeft,
+  Dot,
+} from "lucide-react";
 import Link from "next/link";
+import {
+  MDXRemote,
+  type MDXRemoteSerializeResult,
+  type MDXRemoteProps,
+} from "next-mdx-remote";
 import { cn } from "@/lib/utils/utils";
 import { RegMark } from "@/components/landing/ui/RegMark";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
 import { FadeIn } from "@/components/landing/animations/FadeIn";
+import { Kbd } from "@/components/ui/kbd";
 import type { Author } from "@/lib/system/changelog-parser";
 
-// ─── Tunable Constants ────────────────────────────────────────────────────────
+// --- Tunable Constants --------------------------------------------------------
 const BEAM_LENGTH = 160;
 const SPRING_STIFFNESS = 100;
 const SPRING_DAMPING = 30;
 const FADE_TIMEOUT_MS = 400;
 const FADE_DURATION_S = 0.5;
 
-/** 
+/**
  * Implementation Notes:
  * 1. The Comet uses a stroke-dash technique. By keeping the gap huge (1e6), it appears as a finite beam.
  * 2. Scroll mapping uses Framer Motion's `useScroll` with `useSpring` to smoothly animate `strokeDashoffset`, avoiding jumping.
@@ -26,40 +49,16 @@ const FADE_DURATION_S = 0.5;
  * 4. The `theme-aware gradient` is applied via CSS variables `var(--foreground)` inside the `<defs>` moving exactly with the dash offsets.
  */
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types -------------------------------------------------------------------
 
 export interface TimelineEntry {
   version: string;
   date: string;
   category: string;
   title?: string;
-  body: string;
+  bodyMdx: MDXRemoteSerializeResult;
   slug: string;
   authors: Author[];
-}
-
-function extractFirstParagraph(markdown: string): { title: string; remainingBody: string } {
-  const lines = markdown.split("\n");
-  let headerIndex = -1;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) {
-      if (headerIndex !== -1) {
-        return {
-          title: lines.slice(0, i).join(" ").trim(),
-          remainingBody: lines.slice(i).join("\n").trim(),
-        };
-      }
-    } else {
-      if (headerIndex === -1) {
-        if (line.startsWith("-") || line.startsWith("```")) {
-          return { title: "", remainingBody: markdown };
-        }
-        headerIndex = i;
-      }
-    }
-  }
-  return { title: markdown.trim(), remainingBody: "" };
 }
 
 interface TimelineProps {
@@ -68,7 +67,7 @@ interface TimelineProps {
 
 type PaginationItem = number | "ellipsis";
 
-// ─── Badge colours ────────────────────────────────────────────────────────────
+// --- Badge colours ------------------------------------------------------------
 
 const BADGE_STYLES: Record<string, string> = {
   security:
@@ -92,7 +91,10 @@ function getBadgeStyle(category: string): string {
   return BADGE_STYLES[category.toLowerCase()] ?? BADGE_STYLES.release;
 }
 
-function getPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+function getPaginationItems(
+  currentPage: number,
+  totalPages: number,
+): PaginationItem[] {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
@@ -102,10 +104,25 @@ function getPaginationItems(currentPage: number, totalPages: number): Pagination
   }
 
   if (currentPage >= totalPages - 2) {
-    return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [
+      1,
+      "ellipsis",
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
   }
 
-  return [1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages];
+  return [
+    1,
+    "ellipsis",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "ellipsis",
+    totalPages,
+  ];
 }
 
 function renderInlineMarkdown(
@@ -180,83 +197,87 @@ function renderInlineMarkdown(
   return nodes;
 }
 
-function renderMarkdownBody(markdown: string): React.ReactNode {
-  const lines = markdown
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .filter((line) => line !== "---");
-  const blocks: React.ReactNode[] = [];
+const changelogMdxComponents: MDXRemoteProps["components"] = {
+  Kbd: ({ className, ...props }: React.ComponentProps<typeof Kbd>) => (
+    <Kbd className={cn("align-middle", className)} {...props} />
+  ),
+  Command: ({ className }: React.ComponentProps<"svg">) => (
+    <CommandIcon className={cn("block w-4 h-4 shrink-0", className)} />
+  ),
+  CornerDownLeft: ({ className }: React.ComponentProps<"svg">) => (
+    <CornerDownLeft className={cn("block w-4 h-4 shrink-0", className)} />
+  ),
+  ChevronRight: ({ className }: React.ComponentProps<"svg">) => (
+    <ChevronRight className={cn("block w-4 h-4 shrink-0", className)} />
+  ),
+  p: ({ className, children, ...props }: React.ComponentProps<"p">) => (
+    <p
+      className={cn(
+        "text-sm text-muted-foreground leading-relaxed my-1.5",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </p>
+  ),
+  h3: ({ className, children, ...props }: React.ComponentProps<"h3">) => (
+    <h3
+      className={cn(
+        "text-sm font-semibold text-foreground/80 mt-4 mb-2 uppercase tracking-wider font-mono first:mt-0",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </h3>
+  ),
+  ul: ({ className, children, ...props }: React.ComponentProps<"ul">) => (
+    <ul className={cn("space-y-1.5 my-2", className)} {...props}>
+      {children}
+    </ul>
+  ),
+  li: ({ className, children, ...props }: React.ComponentProps<"li">) => (
+    <li
+      className={cn(
+        "text-sm text-muted-foreground flex gap-2 leading-relaxed",
+        className,
+      )}
+      {...props}
+    >
+      <ChevronRight className="h-4 w-4 text-primary/50 mt-0.5 shrink-0" />
+      <span>{children}</span>
+    </li>
+  ),
+  a: ({
+    href,
+    children,
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a
+      href={href}
+      {...props}
+      className="text-primary hover:underline underline-offset-4"
+      target={href?.startsWith("/") ? undefined : "_blank"}
+      rel={href?.startsWith("/") ? undefined : "noreferrer noopener"}
+    >
+      {children}
+    </a>
+  ),
+  code: ({ className, children, ...props }: React.ComponentProps<"code">) => (
+    <code
+      className={cn(
+        "text-xs font-mono bg-muted/60 text-primary px-1 py-0.5 rounded-sm",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </code>
+  ),
+};
 
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i].trim();
-
-    if (!line) {
-      i += 1;
-      continue;
-    }
-
-    if (line.startsWith("### ")) {
-      blocks.push(
-        <h3
-          key={`h3-${i}`}
-          className="text-sm font-semibold text-foreground/80 mt-4 mb-2 uppercase tracking-wider font-mono first:mt-0"
-        >
-          {line.slice(4)}
-        </h3>,
-      );
-      i += 1;
-      continue;
-    }
-
-    if (line.startsWith("- ")) {
-      const items: string[] = [];
-      while (i < lines.length && lines[i].trim().startsWith("- ")) {
-        items.push(lines[i].trim().slice(2));
-        i += 1;
-      }
-
-      blocks.push(
-        <ul key={`ul-${i}`} className="space-y-1.5 my-2">
-          {items.map((item, itemIndex) => (
-            <li
-              key={`li-${i}-${itemIndex}`}
-              className="text-sm text-muted-foreground flex gap-2 leading-relaxed before:content-['▸'] before:text-primary/50 before:mt-0.5 before:shrink-0"
-            >
-              <span>{renderInlineMarkdown(item, `li-${i}-${itemIndex}`)}</span>
-            </li>
-          ))}
-        </ul>,
-      );
-      continue;
-    }
-
-    const paragraphLines: string[] = [];
-    while (
-      i < lines.length &&
-      lines[i].trim() &&
-      !lines[i].trim().startsWith("### ") &&
-      !lines[i].trim().startsWith("- ")
-    ) {
-      paragraphLines.push(lines[i].trim());
-      i += 1;
-    }
-
-    const paragraph = paragraphLines.join(" ");
-    blocks.push(
-      <p
-        key={`p-${i}`}
-        className="text-sm text-muted-foreground leading-relaxed my-1.5"
-      >
-        {renderInlineMarkdown(paragraph, `p-${i}`)}
-      </p>,
-    );
-  }
-
-  return blocks;
-}
-
-// ─── Circuit-path SVG ─────────────────────────────────────────────────────────
+// --- Circuit-path SVG ---------------------------------------------------------
 
 const SVG_W = 40;
 const CX = SVG_W / 2;
@@ -276,9 +297,9 @@ function buildPath(ys: number[], tYs: number[], bYs: number[]): TrackMath {
   let currentLen = 0;
   let currentY = ys[0];
   let currentX = CX;
-  
+
   const dotLengths: number[] = [0];
-  
+
   function pushLine(nx: number, ny: number) {
     const dx = nx - currentX;
     const dy = ny - currentY;
@@ -291,11 +312,12 @@ function buildPath(ys: number[], tYs: number[], bYs: number[]): TrackMath {
   for (let i = 0; i < ys.length; i++) {
     const tY = tYs[i];
     const bY = bYs[i];
-    
+
     const jogStartY = (tY || ys[i]) + TRACK_TITLE_GAP;
     const jogEndY = (bY || ys[i]) + TRACK_BODY_GAP;
-    
-    const safeNextY = i < ys.length - 1 ? ys[i + 1] : jogEndY + TRACK_JOG_Y + 20;
+
+    const safeNextY =
+      i < ys.length - 1 ? ys[i + 1] : jogEndY + TRACK_JOG_Y + 20;
 
     if (tY && bY && jogEndY > jogStartY + TRACK_JOG_Y) {
       if (jogEndY + TRACK_JOG_Y < safeNextY) {
@@ -305,18 +327,18 @@ function buildPath(ys: number[], tYs: number[], bYs: number[]): TrackMath {
         pushLine(CX, jogEndY + TRACK_JOG_Y);
       }
     }
-    
+
     pushLine(CX, safeNextY);
-    
+
     if (i < ys.length - 1) {
       dotLengths.push(currentLen);
     }
   }
-  
+
   return { d: parts.join(" "), dotLengths };
 }
 
-// ─── Author chip ──────────────────────────────────────────────────────────────
+// --- Author chip --------------------------------------------------------------
 
 function AuthorChip({ author }: { author: Author }) {
   const [imgError, setImgError] = useState(false);
@@ -351,7 +373,7 @@ function AuthorChip({ author }: { author: Author }) {
   );
 }
 
-// ─── Mobile version nav ───────────────────────────────────────────────────────
+// --- Mobile version nav -------------------------------------------------------
 
 function MobileVersionNav({
   entries,
@@ -453,49 +475,56 @@ function MobileVersionNav({
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// --- Main component -----------------------------------------------------------
 
 export function ChangelogTimeline({ entries }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const titleRefs = useRef<(HTMLHeadingElement | null)[]>([]);
   const bodyRefs = useRef<(HTMLDivElement | null)[]>([]);
-  
+
   const [nodeYs, setNodeYs] = useState<number[]>([]);
   const [titleYs, setTitleYs] = useState<number[]>([]);
   const [bodyYs, setBodyYs] = useState<number[]>([]);
-  
+
   const [svgHeight, setSvgHeight] = useState(0);
   const [activeSlug, setActiveSlug] = useState<string>(entries[0]?.slug ?? "");
   const [isScrolling, setIsScrolling] = useState(false);
-  
+
   const { scrollY } = useScroll();
 
   // Exclusive Magnet State
   const [parkedSlug, setParkedSlug] = useState<string | null>(null);
-  
+
   // Delayed Pagination State
   const [targetPage, setTargetPage] = useState<number | null>(null);
   const targetPageRef = useRef<number | null>(null);
   const scrollRafRef = useRef<number | null>(null);
-  useEffect(() => { targetPageRef.current = targetPage; }, [targetPage]);
+  useEffect(() => {
+    targetPageRef.current = targetPage;
+  }, [targetPage]);
   const isScrollingRef = useRef(false);
   const parkedSlugRef = useRef<string | null>(null);
   const hasScrolledRef = useRef(false);
-  
+
   const isProgrammaticScrollRef = useRef(false);
   const scrollEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const skipCometVisibilityRef = useRef(false);
 
-  useEffect(() => { isScrollingRef.current = isScrolling; }, [isScrolling]);
-  useEffect(() => { parkedSlugRef.current = parkedSlug; }, [parkedSlug]);
+  useEffect(() => {
+    isScrollingRef.current = isScrolling;
+  }, [isScrolling]);
+  useEffect(() => {
+    parkedSlugRef.current = parkedSlug;
+  }, [parkedSlug]);
 
   useEffect(() => {
     const unsub = scrollY.on("change", (latestY) => {
       if (latestY > 5) hasScrolledRef.current = true;
 
       if (isProgrammaticScrollRef.current) {
-        if (scrollEndTimeoutRef.current) clearTimeout(scrollEndTimeoutRef.current);
+        if (scrollEndTimeoutRef.current)
+          clearTimeout(scrollEndTimeoutRef.current);
         scrollEndTimeoutRef.current = setTimeout(() => {
           isProgrammaticScrollRef.current = false;
           setIsScrolling(false);
@@ -504,12 +533,15 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
         setParkedSlug(null);
         setShowComet(false);
         skipCometVisibilityRef.current = true;
-        setTimeout(() => { skipCometVisibilityRef.current = false; }, 400);
+        setTimeout(() => {
+          skipCometVisibilityRef.current = false;
+        }, 400);
       }
     });
     return () => {
       unsub();
-      if (scrollEndTimeoutRef.current) clearTimeout(scrollEndTimeoutRef.current);
+      if (scrollEndTimeoutRef.current)
+        clearTimeout(scrollEndTimeoutRef.current);
     };
   }, [scrollY]);
 
@@ -517,9 +549,12 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 14;
   const totalPages = Math.max(1, Math.ceil(entries.length / itemsPerPage));
-  
+
   const currentEntries = React.useMemo(() => {
-    return entries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    return entries.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage,
+    );
   }, [entries, currentPage]);
 
   const paginationItems = React.useMemo(
@@ -552,25 +587,25 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
     setActiveSlug("");
     setParkedSlug(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    
+
     // Dynamically track the absolute real-time physics of the browser scroll without dumb timeouts
     let lastY = window.scrollY;
     let stableFrames = 0;
-    
+
     const watchScroll = () => {
       if (targetPageRef.current === null) return;
-      
+
       const currentY = window.scrollY;
       if (currentY <= 15) {
         setCurrentPage(targetPageRef.current);
         setTargetPage(null);
         return;
       }
-      
+
       // Measure sub-pixel stalling
       if (Math.abs(currentY - lastY) < 1) {
         stableFrames++;
-        if (stableFrames > 12) { 
+        if (stableFrames > 12) {
           // Browser scroll completely paralyzed mid-way! Force UI payload dynamically and snap instantly.
           setCurrentPage(targetPageRef.current);
           setTargetPage(null);
@@ -580,11 +615,11 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
       } else {
         stableFrames = 0;
       }
-      
+
       lastY = currentY;
       scrollRafRef.current = requestAnimationFrame(watchScroll);
     };
-    
+
     if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
     scrollRafRef.current = requestAnimationFrame(watchScroll);
   };
@@ -603,23 +638,29 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
 
   const activeBeamLength = useSpring(0, { stiffness: 250, damping: 35 }); // Overdamped to ban zero-crossing bounce
   const dirSpring = useSpring(1, { stiffness: 400, damping: 40 }); // Critically damped
-  
+
   const actualDashOffset = useMotionValue(0);
   const actualDashLength = useMotionValue(BEAM_LENGTH);
   const strokeDasharray = useMotionTemplate`${actualDashLength} 1000000`;
-  
+
   const gradientY1 = useMotionValue(0); // Tail
   const gradientY2 = useMotionValue(0); // Head
 
   const lastScrollY = useRef(0);
   const scrollDir = useRef(1); // 1 = down, -1 = up
 
-  const parkedIndex = parkedSlug ? currentEntries.findIndex(e => e.slug === parkedSlug) : -1;
-  const parkedDotY = parkedIndex !== -1 && nodeYs.length > 0 ? nodeYs[parkedIndex] : 0;
+  const parkedIndex = parkedSlug
+    ? currentEntries.findIndex((e) => e.slug === parkedSlug)
+    : -1;
+  const parkedDotY =
+    parkedIndex !== -1 && nodeYs.length > 0 ? nodeYs[parkedIndex] : 0;
   const parkedDotYRef = useRef(0);
-  
+
   // Track geometry memoization (prevent duplicate loops)
-  const trackMath = React.useMemo(() => buildPath(nodeYs, titleYs, bodyYs), [nodeYs, titleYs, bodyYs]);
+  const trackMath = React.useMemo(
+    () => buildPath(nodeYs, titleYs, bodyYs),
+    [nodeYs, titleYs, bodyYs],
+  );
   const nodeYsRef = useRef<number[]>([]);
   const dotLengthsRef = useRef<number[]>([]);
 
@@ -631,7 +672,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
 
   useAnimationFrame(() => {
     const sy = scrollY.get();
-    
+
     // Smooth scroll direction derivation
     const delta = sy - lastScrollY.current;
     if (delta > 0) scrollDir.current = 1;
@@ -642,9 +683,9 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
     const vh = typeof window !== "undefined" ? window.innerHeight : 1000;
     const normalTarget = sy + vh * 0.5 - containerTop;
     const firstDot = nodeYs.length > 0 ? nodeYs[0] : 0;
-    
+
     const THRESHOLD = 250;
-    
+
     if (isProgrammaticScrollRef.current) {
       // Bind tightly to the expected scroll-padding margin height crossing dynamically on-screen
       rawCometY.set(sy + 156 - containerTop);
@@ -663,22 +704,23 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
     // 2. Exact Tail calculation via single derived math (No double springs)
     dirSpring.set(scrollDir.current);
     const rawLen = activeBeamLength.get();
-    const len = Math.max(0, rawLen); 
+    const len = Math.max(0, rawLen);
     const dir = dirSpring.get();
     const tY = hY - dir * len;
 
     // 3. Mathematical exact dash offset alignment scaling
     const minY = Math.min(hY, tY);
     const absLen = Math.abs(hY - tY);
-    
+
     const yList = nodeYsRef.current;
     const lList = dotLengthsRef.current;
-    
+
     let pathDistance = 0;
     if (yList.length > 0 && lList.length > 0) {
       if (minY <= yList[0]) pathDistance = 0;
       else if (minY >= yList[yList.length - 1]) {
-        pathDistance = lList[lList.length - 1] + (minY - yList[yList.length - 1]);
+        pathDistance =
+          lList[lList.length - 1] + (minY - yList[yList.length - 1]);
       } else {
         for (let i = 0; i < yList.length - 1; i++) {
           if (minY >= yList[i] && minY <= yList[i + 1]) {
@@ -729,7 +771,8 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
   useEffect(() => {
     function recalculate() {
       if (!containerRef.current) return;
-      const cTop = containerRef.current.getBoundingClientRect().top + window.scrollY;
+      const cTop =
+        containerRef.current.getBoundingClientRect().top + window.scrollY;
       setContainerTop(cTop);
       const ys: number[] = [];
       const tYs: number[] = [];
@@ -740,7 +783,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
         const nodeEl = nodeRefs.current[i];
         const titleEl = titleRefs.current[i];
         const bodyEl = bodyRefs.current[i];
-        
+
         let y = 0;
         if (nodeEl) {
           const rect = nodeEl.getBoundingClientRect();
@@ -748,7 +791,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
           ys.push(y);
           maxY = Math.max(maxY, y);
         }
-        
+
         if (titleEl) {
           const rect = titleEl.getBoundingClientRect();
           const tY = rect.bottom + window.scrollY - cTop;
@@ -756,7 +799,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
         } else {
           tYs.push(y + 30);
         }
-        
+
         if (bodyEl) {
           const rect = bodyEl.getBoundingClientRect();
           const bY = rect.bottom + window.scrollY - cTop;
@@ -818,13 +861,13 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
     setIsScrolling(true);
     setParkedSlug(slug);
     setActiveSlug(slug);
-    
+
     isProgrammaticScrollRef.current = true;
     if (scrollEndTimeoutRef.current) clearTimeout(scrollEndTimeoutRef.current);
-    
+
     const offset = el.getBoundingClientRect().top + window.scrollY - 140;
     window.scrollTo({ top: offset, behavior: "smooth" });
-    
+
     scrollEndTimeoutRef.current = setTimeout(() => {
       isProgrammaticScrollRef.current = false;
       setIsScrolling(false);
@@ -835,7 +878,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Mobile version nav - BEFORE pt-24 so it's at y≈0 and immediately sticky at top-16 (flush under navbar) */}
+      {/* Mobile version nav - BEFORE pt-24 so it's at y~0 and immediately sticky at top-16 (flush under navbar) */}
       <div className="lg:hidden sticky top-16 z-40 bg-background/95 backdrop-blur border-t border-b border-border/50 relative">
         <MobileVersionNav
           entries={currentEntries}
@@ -901,8 +944,16 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                           y1={gradientY1}
                           y2={gradientY2}
                         >
-                          <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0" />
-                          <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity="1" />
+                          <stop
+                            offset="0%"
+                            stopColor="hsl(var(--muted-foreground))"
+                            stopOpacity="0"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="hsl(var(--foreground))"
+                            stopOpacity="1"
+                          />
                         </motion.linearGradient>
                       </defs>
                       <path
@@ -920,10 +971,18 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                         strokeWidth="2"
                         fill="none"
                         strokeLinecap="round"
-                        style={{ strokeDasharray, strokeDashoffset: actualDashOffset }}
+                        style={{
+                          strokeDasharray,
+                          strokeDashoffset: actualDashOffset,
+                        }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: showComet ? 1 : 0 }}
-                        transition={{ opacity: { duration: FADE_DURATION_S, delay: showComet ? 0 : 0.4 } }}
+                        transition={{
+                          opacity: {
+                            duration: FADE_DURATION_S,
+                            delay: showComet ? 0 : 0.4,
+                          },
+                        }}
                       />
                     </>
                   )}
@@ -951,38 +1010,100 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
 
                 {/* Entries */}
                 {currentEntries.map((entry, index) => {
-                  const { title: extractedTitle, remainingBody } = extractFirstParagraph(entry.body);
-                  const displayTitle = entry.title || extractedTitle || `Release v${entry.version}`;
+                  const displayTitle =
+                    entry.title || `Release v${entry.version}`;
                   const hasLongTitle = displayTitle.length > 25;
 
                   return (
-                  <div
-                    key={entry.slug}
-                    id={entry.slug}
-                    className={cn(
-                      "scroll-mt-36",
-                      index < currentEntries.length - 1 ? "pb-12 md:pb-16" : "pb-4",
-                    )}
-                  >
-                    {/* Desktop: side-by-side with date column + SVG spacer */}
-                    <div className="hidden md:flex gap-0">
-                      {/* Date */}
-                      <div className="w-28 shrink-0 flex items-start justify-end pr-6 pt-0.5">
-                        <div
-                          ref={(el) => {
-                            nodeRefs.current[index] = el;
-                          }}
-                        >
-                          <span className="text-xs font-mono text-muted-foreground/60 whitespace-nowrap">
-                            {entry.date}
-                          </span>
+                    <div
+                      key={entry.slug}
+                      id={entry.slug}
+                      className={cn(
+                        "scroll-mt-36",
+                        index < currentEntries.length - 1
+                          ? "pb-12 md:pb-16"
+                          : "pb-4",
+                      )}
+                    >
+                      {/* Desktop: side-by-side with date column + SVG spacer */}
+                      <div className="hidden md:flex gap-0">
+                        {/* Date */}
+                        <div className="w-28 shrink-0 flex items-start justify-end pr-6 pt-0.5">
+                          <div
+                            ref={(el) => {
+                              nodeRefs.current[index] = el;
+                            }}
+                          >
+                            <span className="text-xs font-mono text-muted-foreground/60 whitespace-nowrap">
+                              {entry.date}
+                            </span>
+                          </div>
+                        </div>
+                        {/* SVG spacer */}
+                        <div className="w-10 shrink-0" />
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span
+                              className={cn(
+                                "text-xs font-mono tracking-widest uppercase px-2 py-0.5 rounded-full",
+                                getBadgeStyle(entry.category),
+                              )}
+                            >
+                              {entry.category}
+                            </span>
+                            <span className="text-xs font-mono text-muted-foreground/50">
+                              v{entry.version}
+                            </span>
+                          </div>
+                          <h3
+                            ref={(el) => {
+                              titleRefs.current[index] = el;
+                            }}
+                            className={cn(
+                              "font-semibold tracking-tight text-foreground mb-4",
+                              hasLongTitle
+                                ? "text-xl md:text-2xl"
+                                : "text-lg md:text-xl",
+                            )}
+                          >
+                            {renderInlineMarkdown(
+                              displayTitle.replace(/^###\s*/, ""),
+                              `title-${entry.version}`,
+                            )}
+                          </h3>
+                          <div
+                            ref={(el) => {
+                              bodyRefs.current[index] = el;
+                            }}
+                          >
+                            <MDXRemote
+                              {...entry.bodyMdx}
+                              components={changelogMdxComponents}
+                            />
+                          </div>
+                          {entry.authors.length > 0 && (
+                            <div className="mt-5 pt-4 border-t border-border/30 flex items-center gap-4 flex-wrap">
+                              {entry.authors.map((author) => (
+                                <AuthorChip
+                                  key={author.github}
+                                  author={author}
+                                />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      {/* SVG spacer */}
-                      <div className="w-10 shrink-0" />
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+
+                      {/* Mobile: stacked layout, no circuit SVG */}
+                      <div className="md:hidden">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs font-mono text-muted-foreground/50">
+                            {entry.date}
+                          </span>
+                          <span className="text-muted-foreground/30">
+                            <Dot className="w-3 h-3" />
+                          </span>
                           <span
                             className={cn(
                               "text-xs font-mono tracking-widest uppercase px-2 py-0.5 rounded-full",
@@ -995,17 +1116,25 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                             v{entry.version}
                           </span>
                         </div>
-                        <h3 
-                          ref={(el) => { titleRefs.current[index] = el; }}
-                          className={cn("font-semibold tracking-tight text-foreground mb-4", hasLongTitle ? "text-xl md:text-2xl" : "text-lg md:text-xl")}
+                        <h3
+                          className={cn(
+                            "font-semibold tracking-tight text-foreground mb-4",
+                            hasLongTitle ? "text-xl" : "text-lg",
+                          )}
                         >
-                          {renderInlineMarkdown(displayTitle.replace(/^###\s*/, ''), `title-${entry.version}`)}
+                          {renderInlineMarkdown(
+                            displayTitle.replace(/^###\s*/, ""),
+                            `mobile-title-${entry.version}`,
+                          )}
                         </h3>
-                        <div ref={(el) => { bodyRefs.current[index] = el; }}>
-                          {renderMarkdownBody(remainingBody)}
+                        <div>
+                          <MDXRemote
+                            {...entry.bodyMdx}
+                            components={changelogMdxComponents}
+                          />
                         </div>
                         {entry.authors.length > 0 && (
-                          <div className="mt-5 pt-4 border-t border-border/30 flex items-center gap-4 flex-wrap">
+                          <div className="mt-4 pt-4 border-t border-border/30 flex items-center gap-4 flex-wrap">
                             {entry.authors.map((author) => (
                               <AuthorChip key={author.github} author={author} />
                             ))}
@@ -1013,40 +1142,8 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                         )}
                       </div>
                     </div>
-
-                    {/* Mobile: stacked layout, no circuit SVG */}
-                    <div className="md:hidden">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs font-mono text-muted-foreground/50">
-                          {entry.date}
-                        </span>
-                        <span className="text-muted-foreground/30">·</span>
-                        <span
-                          className={cn(
-                            "text-xs font-mono tracking-widest uppercase px-2 py-0.5 rounded-full",
-                            getBadgeStyle(entry.category),
-                          )}
-                        >
-                          {entry.category}
-                        </span>
-                        <span className="text-xs font-mono text-muted-foreground/50">
-                          v{entry.version}
-                        </span>
-                      </div>
-                      <h3 className={cn("font-semibold tracking-tight text-foreground mb-4", hasLongTitle ? "text-xl" : "text-lg")}>
-                        {renderInlineMarkdown(displayTitle.replace(/^###\s*/, ''), `mobile-title-${entry.version}`)}
-                      </h3>
-                      <div>{renderMarkdownBody(remainingBody)}</div>
-                      {entry.authors.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-border/30 flex items-center gap-4 flex-wrap">
-                          {entry.authors.map((author) => (
-                            <AuthorChip key={author.github} author={author} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )})}
+                  );
+                })}
               </div>
 
               {/* Pagination Controls */}
@@ -1085,7 +1182,9 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                             onClick={() => changePage(item as number)}
                             disabled={targetPage !== null}
                             aria-label={`Go to page ${item}`}
-                            aria-current={currentPage === item ? "page" : undefined}
+                            aria-current={
+                              currentPage === item ? "page" : undefined
+                            }
                             className={cn(
                               "inline-flex h-6 min-w-7 items-center justify-center rounded-full px-2 text-[10px] font-mono transition-colors sm:h-7 sm:min-w-9 sm:px-3 sm:text-[11px] cursor-pointer disabled:cursor-not-allowed",
                               currentPage === item
@@ -1112,7 +1211,9 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
                     <div className="flex flex-1 justify-end">
                       <button
                         onClick={() => changePage(currentPage + 1)}
-                        disabled={currentPage === totalPages || targetPage !== null}
+                        disabled={
+                          currentPage === totalPages || targetPage !== null
+                        }
                         aria-label="Go to next page"
                         className="flex items-center gap-1.5 sm:gap-2 pl-4 py-2 text-xs sm:text-sm font-mono text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                       >

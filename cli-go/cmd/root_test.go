@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// --- Helper -------------------------------------------------------------------
 
 // runCLI builds and runs the CLI binary with the given arguments, returning
 // stdout, stderr, and the exit code. It compiles on first call per test binary.
@@ -54,7 +54,7 @@ func buildBinary(t *testing.T) string {
 	return bin
 }
 
-// ─── --verbose flag ───────────────────────────────────────────────────────────
+// --- --verbose flag -----------------------------------------------------------
 
 func TestVerboseFlag_SilentByDefault(t *testing.T) {
 	// Without --verbose, the CLI must emit nothing on stdout for a no-op invocation.
@@ -79,7 +79,7 @@ func TestVerboseFlag_ConfigAppearsOnStderr(t *testing.T) {
 	}
 }
 
-// ─── envault run: stdout cleanliness ─────────────────────────────────────────
+// --- envault run: stdout cleanliness -----------------------------------------
 
 func TestRunCmd_NoConfigLeakOnStdout(t *testing.T) {
 	// We need secrets from a server. Stand up a mock.
@@ -126,7 +126,7 @@ func TestRunCmd_NoConfigLeakOnStdout(t *testing.T) {
 	}
 }
 
-// ─── error messages go to stderr ─────────────────────────────────────────────
+// --- error messages go to stderr ---------------------------------------------
 
 func TestErrorsRouteToStderr_InvalidProjectID(t *testing.T) {
 	tmp := t.TempDir()
@@ -183,7 +183,7 @@ func TestErrorsRouteToStderr_RunFailed(t *testing.T) {
 	}
 }
 
-// ─── pull: atomic write leaves no temp file ───────────────────────────────────
+// --- pull: atomic write leaves no temp file -----------------------------------
 
 func TestPullCmd_NoLeftoverTempFile(t *testing.T) {
 	// A server that returns one secret.
@@ -254,7 +254,7 @@ func TestPullCmd_SecretWrittenToEnvFile(t *testing.T) {
 	}
 }
 
-// ─── signal handling: Ctrl+C exits gracefully ────────────────────────────────
+// --- signal handling: Ctrl+C exits gracefully --------------------------------
 
 func TestPullCmd_SIGINTExitsWithCode130(t *testing.T) {
 	// Use a channel to confirm the server received the request before we send
@@ -386,7 +386,7 @@ func TestDeployCmd_SIGINTExitsWithCode130(t *testing.T) {
 	}
 }
 
-// ─── run: child process exit code propagation ────────────────────────────────
+// --- run: child process exit code propagation --------------------------------
 
 func TestRunCmd_PropagatesChildExitCode(t *testing.T) {
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -420,7 +420,7 @@ func TestRunCmd_PropagatesChildExitCode(t *testing.T) {
 	}
 }
 
-// ─── run: stdout is pure child output ────────────────────────────────────────
+// --- run: stdout is pure child output ----------------------------------------
 
 func TestRunCmd_StdoutIsPureChildOutput(t *testing.T) {
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -455,11 +455,11 @@ func TestRunCmd_StdoutIsPureChildOutput(t *testing.T) {
 	}
 }
 
-// ─── audit --install-hook: errors go to stderr ───────────────────────────────
+// --- audit --install-hook: errors go to stderr -------------------------------
 
 func TestAuditInstallHook_NotInGitRepo_ErrorOnStderr(t *testing.T) {
 	tmp := t.TempDir()
-	// No .git directory → should error on stderr.
+	// No .git directory -> should error on stderr.
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "audit", "--install-hook")
 	cmd.Dir = tmp

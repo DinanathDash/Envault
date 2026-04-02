@@ -19,7 +19,7 @@ if (!validProject.success) {
 if (invalidProject.success) {
   console.error("Invalid project passed");
   failed = true;
-} else console.log("✅ ProjectNameSchema: OK (Caught invalid characters)");
+} else console.log("[OK] ProjectNameSchema: OK (Caught invalid characters)");
 
 // 2. Test UserEmailSchema
 const validUser = UserEmailSchema.safeParse({
@@ -34,7 +34,7 @@ if (!validUser.success) {
 if (invalidUser.success) {
   console.error("Invalid user passed");
   failed = true;
-} else console.log("✅ UserEmailSchema: OK (Caught invalid UUID)");
+} else console.log("[OK] UserEmailSchema: OK (Caught invalid UUID)");
 
 // 3. Test SecretSchema
 const validSecret = SecretSchema.safeParse({
@@ -50,7 +50,7 @@ if (!validSecret.success) {
 if (invalidSecret.success) {
   console.error("Invalid secret passed");
   failed = true;
-} else console.log("✅ SecretSchema: OK (Caught invalid key chars)");
+} else console.log("[OK] SecretSchema: OK (Caught invalid key chars)");
 
 if (failed) process.exit(1);
 console.log("All checks passed.");

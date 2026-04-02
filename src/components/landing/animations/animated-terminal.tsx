@@ -1,7 +1,13 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { Terminal, Clipboard, Check } from "lucide-react";
+import {
+  Terminal,
+  Clipboard,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -109,7 +115,7 @@ export function AnimatedTerminal() {
         >
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <span className="text-green-400">➜</span>
+              <ChevronRight className="text-green-400 h-4 w-4" />
               <span className="text-blue-400">~</span>
               <span className="text-muted-foreground mr-1">$</span>
               <span>
@@ -168,7 +174,7 @@ export function AnimatedTerminal() {
                 className="space-y-2"
               >
                 <div className="flex items-center space-x-2 text-white/90">
-                  <span className="text-green-500">✔</span>
+                  <CheckCircle2 className="text-green-500 h-4 w-4" />
                   <span>Device code generated.</span>
                 </div>
                 <div className="py-2 text-blue-400">
@@ -203,7 +209,7 @@ export function AnimatedTerminal() {
                 transition={{ duration: 0.4 }}
                 className="flex items-center space-x-2 mt-2 text-green-400"
               >
-                <span>✔</span>
+                <CheckCircle2 className="h-4 w-4" />
                 <span>Successfully authenticated as dinanath@envault.tech</span>
               </motion.div>
             )}
@@ -215,7 +221,7 @@ export function AnimatedTerminal() {
                 transition={{ duration: 0.4, delay: 0.2 }}
                 className="flex items-center space-x-2 pt-2"
               >
-                <span className="text-green-400">➜</span>
+                <ChevronRight className="text-green-400 h-4 w-4" />
                 <span className="text-blue-400">~</span>
                 <span className="text-muted-foreground mr-1">$</span>
                 <span

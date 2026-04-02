@@ -7,7 +7,7 @@ interface ScrollProgressProps {
   size?: number;
   strokeWidth?: number;
   className?: string;
-  /** 0–1. When provided, uses this value instead of window scroll position. */
+  /** 0-1. When provided, uses this value instead of window scroll position. */
   progress?: number;
 }
 
@@ -59,7 +59,7 @@ export function ScrollProgress({
         strokeWidth={strokeWidth}
         opacity={0.5}
       />
-      {/* Progress - starts at 12 o’clock via rotate(-90) */}
+      {/* Progress - starts at 12 o'clock via rotate(-90) */}
       <g transform={`rotate(-90, ${cx}, ${cy})`}>
         <motion.circle
           cx={cx}

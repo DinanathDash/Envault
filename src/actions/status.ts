@@ -208,7 +208,7 @@ export async function createIncident(
     const users = usersData?.users ?? [];
 
     const notificationTitle = `New Incident: ${title}`;
-    const notificationMessage = `${severity.charAt(0).toUpperCase() + severity.slice(1)} severity – ${initialMessage}`;
+    const notificationMessage = `${severity.charAt(0).toUpperCase() + severity.slice(1)} severity - ${initialMessage}`;
 
     const { createNotification } = await import("@/lib/system/notifications");
     const { sendSystemUpdateEmail } = await import("@/lib/infra/email");

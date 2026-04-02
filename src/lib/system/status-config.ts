@@ -42,7 +42,7 @@ export interface StatusLevelConfig {
   message: string;
 }
 
-/** Maps incident severity → the closest StatusLevel for visual consistency */
+/** Maps incident severity -> the closest StatusLevel for visual consistency */
 export const INCIDENT_SEVERITY_LEVEL: Record<
   "minor" | "major" | "critical" | "maintenance",
   StatusLevel
@@ -130,10 +130,10 @@ export interface IncidentPhaseConfig {
  * Visual config for each incident lifecycle phase.
  * Used in the public status page timeline and admin incident cards.
  *
- * investigating → red   (urgently looking for root cause)
- * identified    → amber (found it, working on a fix)
- * monitoring    → blue  (fix deployed, watching for stabilisation)
- * resolved      → emerald (fully resolved)
+ * investigating -> red   (urgently looking for root cause)
+ * identified    -> amber (found it, working on a fix)
+ * monitoring    -> blue  (fix deployed, watching for stabilisation)
+ * resolved      -> emerald (fully resolved)
  */
 export const INCIDENT_PHASE_CONFIG: Record<IncidentPhase, IncidentPhaseConfig> =
   {

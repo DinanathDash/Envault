@@ -9,7 +9,7 @@ export default function GitHubConnectedPage() {
         fallback={
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Loading…</span>
+            <span className="text-sm">Loading...</span>
           </div>
         }
       >

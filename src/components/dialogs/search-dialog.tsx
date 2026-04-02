@@ -27,6 +27,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -377,6 +378,9 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
           <div className="flex items-center gap-3">
             <Search className="w-5 h-5 text-muted-foreground" />
             <DialogTitle className="sr-only">Search</DialogTitle>
+            <DialogDescription className="sr-only">
+              Search projects and run quick commands.
+            </DialogDescription>
             <Input
               placeholder="Type a command or search..."
               className="border-0 focus-visible:ring-0 px-0 h-auto text-base shadow-none"

@@ -25,6 +25,7 @@ import { Kbd } from "@/components/ui/kbd";
 export function NotificationDropdown() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const { notifications, isLoading, markAllAsRead, deleteAllRead } =
     useNotificationStore();
   const router = useRouter();
@@ -58,11 +59,19 @@ export function NotificationDropdown() {
 
   // Listen for global shortcut event
   useEffect(() => {
-    const handleToggle = () => setOpen((prev) => !prev);
+    const handleToggle = () => {
+      setShowTooltip(false);
+      setOpen((prev) => !prev);
+    };
     document.addEventListener("toggle-notifications", handleToggle);
     return () =>
       document.removeEventListener("toggle-notifications", handleToggle);
   }, []);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    setShowTooltip(false);
+  };
 
   useHotkeys(
     "m",
@@ -100,11 +109,18 @@ export function NotificationDropdown() {
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <Tooltip>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+      <Tooltip open={showTooltip && !open}>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <NotificationBell data-notification-trigger />
+            <NotificationBell
+              data-notification-trigger
+              onPointerEnter={() => setShowTooltip(true)}
+              onPointerLeave={() => setShowTooltip(false)}
+              onFocus={() => setShowTooltip(false)}
+              onBlur={() => setShowTooltip(false)}
+              onClick={() => setShowTooltip(false)}
+            />
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent>

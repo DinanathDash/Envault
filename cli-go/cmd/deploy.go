@@ -46,7 +46,7 @@ var deployCmd = &cobra.Command{
 		if projectId == "" {
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("No project linked."))
 			projectId = selectProjectAndPersistOrExit()
-			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("✔ Project linked! (ID: %s)\n", projectId)))
+			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("[OK] Project linked! (ID: %s)\n", projectId)))
 		}
 		if !isValidProjectID(projectId) {
 			fmt.Fprintln(os.Stderr, ui.ColorRed("Invalid project ID. Expected a UUID."))
@@ -65,7 +65,7 @@ var deployCmd = &cobra.Command{
 		// user exactly how to fix it - there is no safe way to proceed silently.
 		if isTrackedByGit(targetFile) {
 			fmt.Fprintln(os.Stderr)
-			fmt.Fprintln(os.Stderr, ui.ColorRed("  ✖  BLOCKED: "+targetFile+" is tracked in your git repository."))
+			fmt.Fprintln(os.Stderr, ui.ColorRed("  [X]  BLOCKED: "+targetFile+" is tracked in your git repository."))
 			fmt.Fprintln(os.Stderr, ui.ColorRed("     Your secrets may already be exposed in your git history."))
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("     You must stop tracking this file before using Envault:"))
 			fmt.Fprintln(os.Stderr, ui.ColorCyan("       git rm --cached "+targetFile))
@@ -232,7 +232,7 @@ var deployCmd = &cobra.Command{
 		}
 
 		s.Stop()
-		fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Successfully deployed %d secrets to %s!", len(secrets), targetEnv)))
+		fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Successfully deployed %d secrets to %s!", len(secrets), targetEnv)))
 	},
 }
 

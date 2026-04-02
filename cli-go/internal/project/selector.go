@@ -246,7 +246,7 @@ func createNewProject(client *api.Client) (string, error) {
 	}
 
 	s.Stop()
-	fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Project \"%s\" created!", resp.Project.Name)))
+	fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Project \"%s\" created!", resp.Project.Name)))
 
 	// Keep local CLI defaults in sync with project creation choices.
 	cfg, err := ReadConfig()

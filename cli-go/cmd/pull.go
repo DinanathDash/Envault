@@ -63,7 +63,7 @@ var pullCmd = &cobra.Command{
 		if projectId == "" {
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("No project linked."))
 			projectId = selectProjectAndPersistOrExit()
-			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("✔ Project linked! (ID: %s)\n", projectId)))
+			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("[OK] Project linked! (ID: %s)\n", projectId)))
 		}
 		if !isValidProjectID(projectId) {
 			fmt.Fprintln(os.Stderr, ui.ColorRed("Invalid project ID. Expected a UUID."))
@@ -177,7 +177,7 @@ var pullCmd = &cobra.Command{
 
 		if len(secretsResp.Secrets) == 0 {
 			s.Stop()
-			fmt.Fprintln(os.Stderr, ui.ColorBlue("ℹ No secrets found for this project."))
+			fmt.Fprintln(os.Stderr, ui.ColorBlue("[i] No secrets found for this project."))
 			return
 		}
 
@@ -186,7 +186,7 @@ var pullCmd = &cobra.Command{
 		if isTrackedByGit(targetFile) {
 			s.Stop()
 			fmt.Fprintln(os.Stderr)
-			fmt.Fprintln(os.Stderr, ui.ColorRed("  ✖  BLOCKED: "+targetFile+" is tracked in your git repository."))
+			fmt.Fprintln(os.Stderr, ui.ColorRed("  [X]  BLOCKED: "+targetFile+" is tracked in your git repository."))
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("     Writing secrets into a tracked file would expose them in your git history."))
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("     Fix this before pulling:"))
 			fmt.Fprintln(os.Stderr, ui.ColorCyan("       git rm --cached "+targetFile))
@@ -234,15 +234,15 @@ var pullCmd = &cobra.Command{
 		}
 
 		s.Stop()
-		fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Pulled %d secrets from %s into %s.", len(secretsResp.Secrets), targetEnv, targetFile)))
+		fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Pulled %d secrets from %s into %s.", len(secretsResp.Secrets), targetEnv, targetFile)))
 
 		// Safety checkpoint: real secrets are now on disk.
 		// 1. Ensure .gitignore covers the written file - create/update it automatically.
 		giAdded, giErr := ensureGitignoreEntry(targetFile)
 		if giErr != nil {
-			fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("  ⚠ Could not update .gitignore: %v", giErr)))
+			fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("  [!] Could not update .gitignore: %v", giErr)))
 		} else if giAdded {
-			fmt.Println(ui.ColorGreen("  ✔ Added '" + targetFile + "' to .gitignore - it will not be committed."))
+			fmt.Println(ui.ColorGreen("  [OK] Added '" + targetFile + "' to .gitignore - it will not be committed."))
 		}
 
 		// 2. Attempt to install the pre-commit hook.
@@ -250,12 +250,12 @@ var pullCmd = &cobra.Command{
 		switch {
 		case hookErr != nil && strings.Contains(hookErr.Error(), "no .git directory"):
 			// No git repo yet - warn the user to run the hook installer after git init.
-			fmt.Fprintln(os.Stderr, ui.ColorYellow("  ⚠ No git repository detected. After git init, run:"))
+			fmt.Fprintln(os.Stderr, ui.ColorYellow("  [!] No git repository detected. After git init, run:"))
 			fmt.Fprintln(os.Stderr, ui.ColorCyan("      envault audit --install-hook"))
 		case hookErr != nil:
-			fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("  ⚠ Could not install pre-commit hook: %v", hookErr)))
+			fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("  [!] Could not install pre-commit hook: %v", hookErr)))
 		case !alreadyInstalled:
-			fmt.Println(ui.ColorGreen("  ✔ Pre-commit hook installed - secrets are protected from accidental commits."))
+			fmt.Println(ui.ColorGreen("  [OK] Pre-commit hook installed - secrets are protected from accidental commits."))
 		}
 	},
 }
@@ -263,7 +263,7 @@ var pullCmd = &cobra.Command{
 // handleAccessRequired prompts the user to request access to the project
 // when the server returns ACCESS_REQUIRED (no existing membership + GitHub check failed/skipped).
 func handleAccessRequired(ctx context.Context, client *api.Client, projectId string) {
-	fmt.Fprintln(os.Stderr, ui.ColorYellow("\n⚠  You do not have access to this project."))
+	fmt.Fprintln(os.Stderr, ui.ColorYellow("\n[!]  You do not have access to this project."))
 
 	confirm := false
 	prompt := &survey.Confirm{
@@ -289,14 +289,14 @@ func handleAccessRequired(ctx context.Context, client *api.Client, projectId str
 		}
 		var apiErr *api.APIError
 		if errors.As(err, &apiErr) && apiErr.StatusCode == 409 {
-			fmt.Fprintln(os.Stderr, ui.ColorBlue("ℹ  You already have a pending access request for this project."))
+			fmt.Fprintln(os.Stderr, ui.ColorBlue("[i]  You already have a pending access request for this project."))
 			return
 		}
 		fmt.Fprintln(os.Stderr, ui.ColorRed(fmt.Sprintf("Failed to send access request: %v", err)))
 		return
 	}
 
-	fmt.Println(ui.ColorGreen("✔ Access request sent! The project owner will be notified via email and in-app notification."))
+	fmt.Println(ui.ColorGreen("[OK] Access request sent! The project owner will be notified via email and in-app notification."))
 }
 
 func init() {

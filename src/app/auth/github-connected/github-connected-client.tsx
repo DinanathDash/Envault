@@ -41,7 +41,7 @@ export function GitHubConnectedContent() {
       {status === "navigating" && (
         <p className="text-sm text-muted-foreground flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Returning you to Envault…
+          Returning you to Envault...
         </p>
       )}
       {status === "done" && (
@@ -51,7 +51,7 @@ export function GitHubConnectedContent() {
       )}
       {status === "no-opener" && (
         <p className="text-sm text-muted-foreground">
-          Redirecting you back to the project…
+          Redirecting you back to the project...
         </p>
       )}
     </div>

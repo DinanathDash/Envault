@@ -46,7 +46,7 @@ var envMapCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Mapped %s -> %s", target, file)))
+		fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Mapped %s -> %s", target, file)))
 	},
 }
 
@@ -76,7 +76,7 @@ var envUnmapCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Removed mapping for %s", target)))
+		fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Removed mapping for %s", target)))
 	},
 }
 
@@ -101,7 +101,7 @@ var envDefaultCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(ui.ColorGreen(fmt.Sprintf("✔ Default environment set to %s", target)))
+		fmt.Println(ui.ColorGreen(fmt.Sprintf("[OK] Default environment set to %s", target)))
 	},
 }
 

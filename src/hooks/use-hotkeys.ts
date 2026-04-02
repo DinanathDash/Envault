@@ -38,6 +38,30 @@ export function useHotkeys(
   useEffect(() => {
     if (!enabled) return;
 
+    const isTypingTarget = (target: HTMLElement | null): boolean => {
+      if (!target) return false;
+
+      // Direct form controls
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+        return true;
+      }
+
+      // contenteditable regions
+      if (target.isContentEditable) return true;
+
+      // Nested within editable/form controls
+      if (
+        target.closest(
+          "input, textarea, select, [contenteditable='true'], [contenteditable='']",
+        )
+      ) {
+        return true;
+      }
+
+      return false;
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Parse the key combo
       const keys = keyCombo
@@ -46,6 +70,7 @@ export function useHotkeys(
         .map((k) => k.trim());
       const mainKey = keys[keys.length - 1];
       const requiredModifiers = keys.slice(0, -1) as Modifier[];
+      const hasAnyRequiredModifier = requiredModifiers.length > 0;
 
       // Check modifiers
       // Check modifiers - STRICT MODE
@@ -135,7 +160,7 @@ export function useHotkeys(
       // e.key is case sensitive (K vs k). We lower case everything for comparison.
       const keyMatch = e.key.toLowerCase() === mainKey;
 
-      // On Mac, Option + Key often produces a different character (e.g. Option+X -> ≈)
+      // On Mac, Option + Key often produces a different character (e.g. Option+X -> ~)
       // We check e.code as a fallback if Alt is involved.
       const codeFallbackMatch =
         e.altKey && e.code.toLowerCase() === `key${mainKey}`;
@@ -143,22 +168,33 @@ export function useHotkeys(
       if (!keyMatch && !codeFallbackMatch) return;
 
       // Check for input focus safety
-      const target = e.target as HTMLElement;
-      const isInput =
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "SELECT" ||
-        target.isContentEditable;
+      const target = e.target as HTMLElement | null;
+      const activeEl = document.activeElement as HTMLElement | null;
+      const inTypingContext = isTypingTarget(target) || isTypingTarget(activeEl);
 
-      if (isInput) {
+      // Safety net: never fire plain alphabet shortcuts while user is typing.
+      // Example: "v" should not toggle visibility while typing value text.
+      const isSingleAlphabetShortcut = /^[a-z]$/.test(mainKey);
+      if (inTypingContext && isSingleAlphabetShortcut && !hasAnyRequiredModifier) {
+        return;
+      }
+
+      if (inTypingContext) {
         if (
           !enableOnFormTags &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.tagName === "SELECT")
+          (target?.tagName === "INPUT" ||
+            target?.tagName === "TEXTAREA" ||
+            target?.tagName === "SELECT" ||
+            activeEl?.tagName === "INPUT" ||
+            activeEl?.tagName === "TEXTAREA" ||
+            activeEl?.tagName === "SELECT")
         )
           return;
-        if (!enableOnContentEditable && target.isContentEditable) return;
+        if (
+          !enableOnContentEditable &&
+          (target?.isContentEditable || activeEl?.isContentEditable)
+        )
+          return;
       }
 
       if (preventDefault) {

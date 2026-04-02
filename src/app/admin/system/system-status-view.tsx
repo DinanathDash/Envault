@@ -166,17 +166,21 @@ export default function SystemStatusView({
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <AppHeader />
+      <AppHeader
+        title={
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-semibold truncate">
+              System Status Center
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+              Manage real-time status updates and incident communication.
+            </p>
+          </div>
+        }
+        backTo="/dashboard"
+        hideSearch
+      />
       <main className="container mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            System Status Center
-          </h1>
-          <p className="text-muted-foreground">
-            Manage real-time status updates and incident communication.
-          </p>
-        </div>
-
         <div className="space-y-6">
           <Tabs
             value={activeTab}
@@ -751,6 +755,9 @@ function UpdateIncidentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Update Incident</DialogTitle>
+          <DialogDescription>
+            Post a status update and optionally change the incident phase.
+          </DialogDescription>
         </DialogHeader>
         <form
           onSubmit={(e) => {

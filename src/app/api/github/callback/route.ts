@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   // OAuth account-picker flow: user came from /api/github/add-account, picked
   // an account in GitHub's native picker, and was redirected here with `code`
   // but no `installation_id`. We use this branch purely to bounce them to the
-  // App installation page — NOW under the GitHub session they just chose.
+  // App installation page - NOW under the GitHub session they just chose.
   if (!installationId && oauthCode) {
     const cookieStore = await cookies();
     const projectFromCookie = cookieStore.get("github_oauth_project_id")?.value;

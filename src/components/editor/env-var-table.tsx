@@ -17,6 +17,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { toast } from "sonner";
 import { ShareSecretModal } from "@/components/dialogs/share-secret-modal";
 import { DateDisplay } from "@/components/ui/date-display";
+import { MaskedDots } from "@/components/ui/masked-dots";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { EnvironmentVariable } from "@/lib/stores/store";
-import { VariableDialog } from "@/components/dialogs/variable-dialog";
+import { VariableDialog } from "@/components/dialogs/add-variable-dialog";
 import { deleteVariable as deleteVariableAction } from "@/app/project-actions";
 import { useRouter } from "next/navigation";
 
@@ -205,7 +206,11 @@ export function EnvVarTable({
                     <TableCell>
                       <div className="flex items-center space-x-2 container-type-normal">
                         <div className="font-mono text-sm break-all line-clamp-1 max-w-[400px]">
-                          {isVisible ? variable.value : "••••••••••••••••"}
+                          {isVisible ? (
+                            variable.value
+                          ) : (
+                            <MaskedDots count={12} />
+                          )}
                         </div>
                         <Button
                           variant="ghost"
@@ -528,7 +533,7 @@ export function EnvVarTable({
 
                 <div className="flex items-center space-x-2 bg-muted/40 p-2 rounded-md">
                   <div className="font-mono text-sm break-all line-clamp-2 flex-1">
-                    {isVisible ? variable.value : "••••••••••••••••"}
+                    {isVisible ? variable.value : <MaskedDots count={12} />}
                   </div>
                   <Button
                     variant="ghost"

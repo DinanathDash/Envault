@@ -31,7 +31,7 @@ var runCmd = &cobra.Command{
 		if projectID == "" {
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("No project linked."))
 			projectID = selectProjectAndPersistOrExit()
-			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("✔ Project linked! (ID: %s)\n", projectID)))
+			fmt.Fprintln(os.Stderr, ui.ColorGreen(fmt.Sprintf("[OK] Project linked! (ID: %s)\n", projectID)))
 		}
 		if !isValidProjectID(projectID) {
 			fmt.Fprintln(os.Stderr, ui.ColorRed("Invalid project ID. Expected a UUID."))

@@ -21,6 +21,8 @@ import { GlobalScene } from "@/components/landing/ui/GlobalScene";
 import { RootRefreshHandler } from "@/components/RootRefreshHandler";
 import { FreeTierNotification } from "@/components/free-tier-notification";
 import { HapticProvider } from "@/components/providers/haptics-provider";
+import { ViewTransitionGuard } from "@/components/providers/view-transition-guard";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.envault.tech"),
@@ -123,9 +125,12 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-screen bg-background font-sans antialiased">
+          <ViewTransitionGuard />
           <SystemStatusBanner show={showBanner} />
-          <script
+          <Script
+            id="envault-jsonld"
             type="application/ld+json"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({
                 "@context": "https://schema.org",

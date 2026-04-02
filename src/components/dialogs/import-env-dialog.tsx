@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/table";
 import { EnvironmentVariable } from "@/lib/stores/store";
 import { Kbd } from "@/components/ui/kbd";
+import { MaskedDots } from "@/components/ui/masked-dots";
 
 interface ImportEnvDialogProps {
   projectId: string;
@@ -384,7 +385,7 @@ export function ImportEnvDialog({
                                 {variable.key}
                               </TableCell>
                               <TableCell className="font-mono text-sm text-muted-foreground truncate max-w-[300px]">
-                                ••••••••
+                                <MaskedDots count={8} />
                               </TableCell>
                               <TableCell>
                                 <span
@@ -440,7 +441,7 @@ export function ImportEnvDialog({
                             </span>
                           </div>
                           <div className="text-xs text-muted-foreground font-mono bg-muted/30 p-2 rounded break-all">
-                            ••••••••
+                            <MaskedDots count={8} />
                           </div>
                         </div>
                       );

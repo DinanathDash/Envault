@@ -3,8 +3,8 @@
  *
  * Data flow:
  *   1. Read from Upstash Redis (TTL 60 s) - fast, independent of primary DB.
- *   2. On cache miss → query Supabase, compute summary, write back to Redis.
- *   3. If both fail → return "operational" (fail-open, never breaks the app).
+ *   2. On cache miss -> query Supabase, compute summary, write back to Redis.
+ *   3. If both fail -> return "operational" (fail-open, never breaks the app).
  */
 
 import { getRedisClient } from "@/lib/infra/redis";
@@ -24,7 +24,7 @@ export interface SystemStatusSummary {
 const CACHE_KEY = "system:status:summary";
 const CACHE_TTL_SECONDS = 60;
 
-/** Map Supabase component statuses → banner severity levels */
+/** Map Supabase component statuses -> banner severity levels */
 function componentToLevel(status: string): StatusLevel {
   switch (status) {
     case "outage":
@@ -38,7 +38,7 @@ function componentToLevel(status: string): StatusLevel {
   }
 }
 
-/** Map active incident severity → banner severity levels */
+/** Map active incident severity -> banner severity levels */
 function incidentToLevel(severity: string): StatusLevel {
   switch (severity) {
     case "critical":

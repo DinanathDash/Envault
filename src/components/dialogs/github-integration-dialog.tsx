@@ -490,7 +490,7 @@ export function GitHubIntegrationDialog({
                         </button>
                       )}
                       <Input
-                        placeholder="Search repositories…"
+                        placeholder="Search repositories..."
                         className="pl-9 pr-8"
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}

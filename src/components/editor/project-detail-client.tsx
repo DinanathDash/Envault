@@ -20,7 +20,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EnvVarTable } from "@/components/editor/env-var-table";
 import { EnvVarTableSkeleton } from "@/components/editor/env-var-table-skeleton";
-import { VariableDialog } from "@/components/dialogs/variable-dialog";
+import { VariableDialog } from "@/components/dialogs/add-variable-dialog";
 import { ImportEnvDialog } from "@/components/dialogs/import-env-dialog";
 import { Project, useEnvaultStore } from "@/lib/stores/store";
 import { createClient } from "@/lib/supabase/client";

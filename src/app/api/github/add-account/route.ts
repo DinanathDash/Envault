@@ -8,7 +8,7 @@ function baseUrl(): string {
 /**
  * Server-side route that initiates a GitHub OAuth authorization flow.
  * Because it goes through /login/oauth/authorize (not the App install URL),
- * GitHub shows its native account picker — "Continue as X / Use a different account".
+ * GitHub shows its native account picker - "Continue as X / Use a different account".
  * After the user picks an account, GitHub redirects to /api/github/callback
  * with `code` + `state`. The callback detects the OAuth-only flow (no installation_id)
  * and sends the user to the GitHub App installation page for the now-active session.
@@ -43,10 +43,7 @@ export async function GET(request: NextRequest) {
 
   const oauthUrl = new URL("https://github.com/login/oauth/authorize");
   oauthUrl.searchParams.set("client_id", clientId);
-  oauthUrl.searchParams.set(
-    "redirect_uri",
-    `${baseUrl()}/api/github/callback`,
-  );
+  oauthUrl.searchParams.set("redirect_uri", `${baseUrl()}/api/github/callback`);
   // state encodes projectId so the callback knows which project to update
   oauthUrl.searchParams.set("state", projectId);
   // No scopes needed - we only use this to trigger the account picker.

@@ -16,6 +16,33 @@ export interface ChangelogEntry {
   authors: Author[];
 }
 
+export function splitChangelogBody(markdown: string): {
+  title: string;
+  remainingBody: string;
+} {
+  const lines = markdown.split("\n");
+  let headerIndex = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      if (headerIndex !== -1) {
+        return {
+          title: lines.slice(0, i).join(" ").trim(),
+          remainingBody: lines.slice(i).join("\n").trim(),
+        };
+      }
+    } else if (headerIndex === -1) {
+      if (line.startsWith("-") || line.startsWith("```")) {
+        return { title: "", remainingBody: markdown };
+      }
+      headerIndex = i;
+    }
+  }
+
+  return { title: markdown.trim(), remainingBody: "" };
+}
+
 const CATEGORY_ORDER = [
   "Security",
   "CLI",
@@ -123,7 +150,11 @@ function formatDisplayDate(rawDate: Date): string {
 }
 
 export function parseChangelog(): ChangelogEntry[] {
-  const changelogPath = path.join(process.cwd(), "CHANGELOG.md");
+  const changelogMdxPath = path.join(process.cwd(), "CHANGELOG.mdx");
+  const changelogMdPath = path.join(process.cwd(), "CHANGELOG.md");
+  const changelogPath = fs.existsSync(changelogMdxPath)
+    ? changelogMdxPath
+    : changelogMdPath;
   const raw = fs.readFileSync(changelogPath, "utf-8");
 
   // Split on ## headings - each is one release

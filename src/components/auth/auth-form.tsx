@@ -332,7 +332,7 @@ export function AuthForm() {
                       <PasswordInput
                         suppressHydrationWarning
                         id="password"
-                        placeholder="••••••••"
+                        placeholder="Enter password"
                         {...register("password")}
                       />
                       {errors.password && (
@@ -392,7 +392,7 @@ export function AuthForm() {
                       <PasswordInput
                         suppressHydrationWarning
                         id="signup-password"
-                        placeholder="••••••••"
+                        placeholder="Create password"
                         {...register("password")}
                       />
                       {errors.password && (

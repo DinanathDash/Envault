@@ -37,6 +37,7 @@ import { useRouter } from "next/navigation";
 
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { getModifierKey } from "@/lib/utils/utils";
+import { MaskedDots } from "@/components/ui/masked-dots";
 
 const variableSchema = z.object({
   key: z
@@ -184,7 +185,7 @@ export function VariableDialog({
     () => {
       if (open) setShowPassword((prev) => !prev);
     },
-    { enableOnContentEditable: true, enableOnFormTags: true },
+    { enableOnContentEditable: false, enableOnFormTags: false },
   );
 
   const modKey = getModifierKey("mod");
@@ -228,10 +229,18 @@ export function VariableDialog({
               <Input
                 id="value"
                 placeholder="postgres://..."
-                type={showPassword ? "text" : "password"}
+                type="text"
                 {...register("value")}
-                className="font-mono pr-10"
+                className={`font-mono pr-10 ${!showPassword && value ? "text-transparent" : ""}`}
               />
+              {!showPassword && !!value && (
+                <div className="absolute inset-y-0 left-3 right-12 flex items-center pointer-events-none">
+                  <MaskedDots
+                    count={Math.max(8, Math.min(24, value.length))}
+                    className="max-w-full overflow-hidden"
+                  />
+                </div>
+              )}
               <Button
                 type="button"
                 variant="ghost"

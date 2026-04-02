@@ -168,7 +168,7 @@ export async function GET(
           };
         });
       } else {
-        // ── JIT GitHub Collaborator Check ──────────────────────────────────
+        // -- JIT GitHub Collaborator Check ----------------------------------
         // If the project is linked to a GitHub repo, check if the requesting
         // user is a collaborator before falling back to a manual request.
         const repoFullName = project?.github_repo_full_name;

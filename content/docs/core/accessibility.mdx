@@ -3,6 +3,9 @@ title: Accessibility
 description: How Envault combines keyboard-first navigation and global haptic feedback to enhance accessibility and user experience.
 ---
 
+import { ChevronRight, Command, CornerDownLeft } from "lucide-react";
+import { Kbd } from "@/components/ui/kbd";
+
 # Accessibility
 
 Envault is designed with accessibility and sensory comfort in mind. A core part of our interactive experience is **Global Haptic Feedback**.
@@ -32,7 +35,7 @@ Envault's haptics system works across both major mobile OS boundaries:
 
 Accessibility is about choice. If you prefer not to experience haptic feedback, or if you are prone to sensory fatigue, you can disable it globally:
 
-1. Navigate to **Settings > Profile**.
+1. Navigate to **Settings** <ChevronRight className="inline w-4 h-4 mx-1" /> **Profile**.
 2. Scroll down to the **Preferences** section.
 3. Toggle off **Enable Haptic Feedback**.
 
@@ -44,7 +47,7 @@ Envault embraces a keyboard-first philosophy, allowing power users and those rel
 
 ### Global Command Palette
 
-Press **`⌘` + `K`** (or **`Ctrl` + `K`** on Windows/Linux) from anywhere in the app to open the Global Search Dialog. From here you can:
+Press <Kbd showOnMobile size="xs"><Command className="inline w-4 h-4" /></Kbd> + <Kbd showOnMobile size="xs">K</Kbd> (or <Kbd showOnMobile size="xs">Ctrl</Kbd> + <Kbd showOnMobile size="xs">K</Kbd> on Windows/Linux) from anywhere in the app to open the Global Search Dialog. From here you can:
 
 - **Search Projects**: Instantly jump to any project environment by name.
 - **Access Settings**: Quickly navigate to Profile, Security, or Appearance settings.
@@ -52,10 +55,10 @@ Press **`⌘` + `K`** (or **`Ctrl` + `K`** on Windows/Linux) from anywhere in th
 
 ### Contextual Shortcuts
 
-Throughout the Envault UI, you will notice small hints (e.g., **`N`**, **`⌘ + ↵`**) attached to buttons and actions. These are contextual shortcuts designed to speed up your workflow:
+Throughout the Envault UI, you will notice small hints (e.g., <Kbd showOnMobile size="xs">N</Kbd>, <Kbd showOnMobile size="xs"><Command className="inline w-4 h-4" /></Kbd> + <Kbd showOnMobile size="xs"><CornerDownLeft className="inline w-4 h-4" /></Kbd>) attached to buttons and actions. These are contextual shortcuts designed to speed up your workflow:
 
-- **Project Editor:** Press **`N`** to open the "Add Variable" dialog instantly while viewing a project.
+- **Project Editor:** Press <Kbd showOnMobile size="xs">N</Kbd> to open the "Add Variable" dialog instantly while viewing a project.
 - **Universal Actions:** Depending on your role, background shortcuts are available to quickly **Delete**, **Share**, **Download**, or **Import** environments without clicking through dropdowns.
-- **Form Submission:** Most dialogs and forms (such as saving profiles, confirming deletions, or adding variables) can be submitted using **`⌘` + `Enter`** (or **`Ctrl` + `Enter`**).
+- **Form Submission:** Most dialogs and forms (such as saving profiles, confirming deletions, or adding variables) can be submitted using <Kbd showOnMobile size="xs"><Command className="inline w-4 h-4" /></Kbd> + <Kbd showOnMobile size="xs"><CornerDownLeft className="inline w-4 h-4" /></Kbd> (or <Kbd showOnMobile size="xs">Ctrl</Kbd> + <Kbd showOnMobile size="xs"><CornerDownLeft className="inline w-4 h-4" /></Kbd>).
 
 All shortcuts are designed to be conflict-free and respect browser defaults, turning your environment management into a seamless, accessible experience.
