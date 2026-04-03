@@ -10,6 +10,22 @@ All notable changes to Envault are documented here.
 
 ---
 
+## 1.8.0 - 2026-04-03
+
+> Authors: Dinanath Dash (DinanathDash)
+
+### SDK, MCP, and Agent Workflow Foundation
+
+- Added first-class TypeScript SDK package (`@dinanathdash/envault-sdk`) with delegated agent token flow, compatibility checks, and HITL polling execution support.
+- Added standalone MCP server package (`@dinanathdash/envault-mcp-server`) with direct Envault tools for status, pull/push, approvals, and local key edits.
+- Added inline terminal approval command `envault approve <approval_id>` for machine-agent workflows.
+- Introduced SDK/MCP backend routes for delegate auth, pending approvals, approval status polling, and SDK version compatibility.
+- Added global + project agent access kill switches and dedicated audit events for agent approvals/rejections.
+- Added independent semantic-release pipelines for SDK and MCP with decoupled tag streams (`sdk-v*`, `mcp-v*`).
+- Expanded docs and legal pages to cover SDK/MCP setup, security model, and policy implications.
+
+---
+
 ## 1.7.0 - 2026-04-02
 
 > Authors: Dinanath Dash (DinanathDash), Rajat Patra (RawJat)
