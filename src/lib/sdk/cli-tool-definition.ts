@@ -1,4 +1,4 @@
-import manifest from "@/lib/sdk/cli-tool-definition.generated.json";
+import manifest from "./cli-tool-definition.generated.json";
 
 type Flag = {
   name: string;
