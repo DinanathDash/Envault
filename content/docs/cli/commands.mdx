@@ -270,6 +270,24 @@ Offline behavior:
 
 ---
 
+## `approve`
+
+Approve a pending SDK/MCP agent mutation request directly from the terminal.
+
+```bash
+envault approve <approval_id>
+```
+
+Behavior:
+
+- Requires a valid local CLI access token (`envault_at_...`).
+- Sends approval to `/api/approve/:id` without requiring browser interaction.
+- Returns non-zero on invalid token format, missing access rights, or already-completed requests.
+
+Use this when a machine-agent workflow pauses with a pending approval ID.
+
+---
+
 ## `audit`
 
 Make sure your local environment files are structurally valid and safe to commit. `audit` performs four checks:

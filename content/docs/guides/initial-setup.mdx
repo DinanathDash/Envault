@@ -46,6 +46,23 @@ Add this to your `.env.local`:
 ENCRYPTION_KEY=your_generated_hex_key
 ```
 
+## Agent and SDK Configuration
+
+If you plan to use the SDK/MCP agent workflows, add:
+
+```bash
+ENVAULT_AGENT_SECRET=your_secure_random_agent_jwt_secret_here
+ENVAULT_SESSION_KEY_SECRET=your_secure_random_session_signature_secret_here
+ENVAULT_SDK_MIN_SUPPORTED_VERSION=1.0.0
+```
+
+If you use the AI orchestration route (`/api/agent/chat`), also configure:
+
+```bash
+GOOGLE_GENERATIVE_AI_API_KEY=your_generative_ai_api_key_here
+ENVAULT_AGENT_MODEL=gemini-1.5-flash
+```
+
 ## Running the Development Server
 
 Now you are ready to start the application.

@@ -39,7 +39,7 @@ export default async function TermsPage() {
   return (
     <LegalLayout
       title="Terms of Service"
-      lastUpdated="30 March 2026"
+      lastUpdated="03 April 2026"
       sections={sections}
     >
       <section
@@ -307,6 +307,11 @@ export default async function TermsPage() {
             overwhelming the service.
           </li>
           <li className="leading-relaxed">
+            Agent-based SDK and MCP mutation workflows are subject to
+            delegated token scope checks, rate limits, and explicit human
+            approval requirements.
+          </li>
+          <li className="leading-relaxed">
             You agree not to use the CLI for automated scraping or unauthorized
             data extraction.
           </li>
@@ -421,6 +426,10 @@ export default async function TermsPage() {
           <li>
             You agree that we may send service announcements and updates via
             email or in-app notifications.
+          </li>
+          <li>
+            Agent approval requests may generate transactional notifications to
+            owners/editors for security review and authorization.
           </li>
           <li>
             Notification data is processed in accordance with our Privacy

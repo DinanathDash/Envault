@@ -61,3 +61,15 @@ You can view and delete your registered passkeys from the **Settings** > **Secur
 
 - **Rolling Sessions**: For interactive users, the Envault CLI stores long-lived Refresh Tokens securely within the native OS Secure Enclave (e.g., macOS Keychain, Windows Credential Manager) rather than plaintext files. Short-lived Access Tokens (valid for 1 hour) are used for API requests.
 - **Service Token Guardrails**: Headless machine workflows use project-scoped Service Tokens. To prevent devastating local leakages, the CLI enforces strict Context Awareness, actively rejecting any Service Tokens executed on local developer machines unless it verifies it is running in a recognized CI/CD environment.
+
+## SDK and Agent Security
+
+Envault SDK and MCP mutation workflows are protected by multiple controls:
+
+- **Delegated agent tokens**: machine tokens are issued as scoped `envault_agt_` JWTs.
+- **Context fencing**: delegated tokens are validated against project scope before mutation workflows continue.
+- **Rate limiting**: SDK auth path includes per-agent rate limiting.
+- **Kill switches**: both global user-level and project-level agent access must be enabled.
+- **Human approval**: mutation execution requires explicit owner/editor approval.
+- **Approval replay protection**: approved payload retrieval is one-time consumable.
+- **Audit coverage**: approval outcomes are captured as dedicated audit actions.

@@ -163,6 +163,145 @@ Follow these steps to get the project running locally.
     npm run test:email -- your-email@example.com
     ```
 
+## Monorepo Setup Map
+
+This repository contains multiple publishable/runtime components. Use this map when cloning and contributing.
+
+| Folder | Purpose | Install | Common Commands |
+|---|---|---|---|
+| `./` | Main Next.js app | `npm install` | `npm run dev`, `npm run build`, `npm run lint`, `npm run test:all` |
+| `cli-go/` | Go CLI (`envault`) | `go mod download` | `go test ./...`, `go build ./...` |
+| `src/lib/sdk/` | npm SDK package (`@dinanathdash/envault-sdk`) | `npm install` | `npm run typecheck`, `npm run build` |
+| `mcp-server/` | npm MCP package (`@dinanathdash/envault-mcp-server`) | `npm install` | `npm run check`, `npm start` |
+| `cli-wrapper/` | npm wrapper for CLI install/bootstrap | `npm install` | `node install.js` |
+
+### First-time contributor flow
+
+1. Clone and install root dependencies:
+
+```bash
+git clone https://github.com/dinanathdash/envault.git
+cd envault
+npm install
+```
+
+2. Copy env file and configure required keys:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Install package-local dependencies for publishable subpackages:
+
+```bash
+cd src/lib/sdk && npm install
+cd ../../.. && cd mcp-server && npm install
+cd ..
+```
+
+4. Validate everything in one pass:
+
+```bash
+npm run lint
+npm run test:all
+npm run build
+```
+
+## Package Publishing + Workflows
+
+### npm packages
+
+- SDK: `@dinanathdash/envault-sdk` (source: `src/lib/sdk/`)
+- MCP: `@dinanathdash/envault-mcp-server` (source: `mcp-server/`)
+
+### GitHub Actions workflows
+
+- CLI release workflow: `.github/workflows/publish.yml`
+- SDK publish workflow: `.github/workflows/publish-sdk.yml`
+- MCP publish workflow: `.github/workflows/publish-mcp.yml`
+
+Each package versions independently via semantic-release when changes occur in its own folder:
+
+- CLI tags: `v<version>`
+- SDK tags: `sdk-v<version>`
+- MCP tags: `mcp-v<version>`
+
+This keeps SDK and MCP release streams decoupled from CLI version bumps.
+
+### Local prepublish checks
+
+```bash
+npm run sdk:check
+npm run mcp:check
+```
+
+### Manual publish commands
+
+```bash
+npm run sdk:publish
+npm run mcp:publish
+```
+
+## Version and Update Commands
+
+Use these commands so users can quickly verify what version they are on and update safely.
+
+### CLI (`envault`)
+
+Check installed CLI version:
+
+```bash
+envault --version
+```
+
+Update via Homebrew formula:
+
+```bash
+brew update
+brew untap dinanathdash/envault || true
+brew tap dinanathdash/envault
+brew upgrade --formula envault
+```
+
+### SDK (`@dinanathdash/envault-sdk`)
+
+Check installed and latest SDK versions:
+
+```bash
+npm ls @dinanathdash/envault-sdk
+npm view @dinanathdash/envault-sdk version
+```
+
+Update SDK:
+
+```bash
+npm install @dinanathdash/envault-sdk@latest
+```
+
+Runtime behavior:
+- SDK prints a warning when a newer SDK version exists.
+- SDK blocks execution when below minimum supported version configured by server.
+
+### MCP (`@dinanathdash/envault-mcp-server`)
+
+Check installed MCP version:
+
+```bash
+npx -y @dinanathdash/envault-mcp-server --version
+```
+
+Check MCP update availability:
+
+```bash
+npx -y @dinanathdash/envault-mcp-server --check-update
+```
+
+Update MCP globally:
+
+```bash
+npm install -g @dinanathdash/envault-mcp-server@latest
+```
+
 ## License
 
 Envault is source-available under the Functional Source License (FSL). You are free to read the code, audit it for security, and self-host it for your own internal use. You are strictly prohibited from using this code to offer a competing commercial service. After 24 months, the license for specific versions automatically converts to the MIT License.

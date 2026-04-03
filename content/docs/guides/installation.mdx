@@ -9,6 +9,15 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 Envault is a self-hostable application. You can run it locally for development or deploy it to your own infrastructure.
 
+## Monorepo Components
+
+This repository includes multiple components:
+
+- Web app: root folder (`./`)
+- Go CLI: `cli-go/`
+- TypeScript SDK: `src/lib/sdk/`
+- MCP server: `mcp-server/`
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -58,6 +67,14 @@ We recommend using `pnpm` for faster installation, but `npm` or `yarn` work just
   ```
   </Tab>
 </Tabs>
+
+If you will work on SDK and MCP packages, also install dependencies in each package folder:
+
+```bash
+cd src/lib/sdk && npm install
+cd ../../.. && cd mcp-server && npm install
+cd ..
+```
 
 </Step>
 <Step>
@@ -125,6 +142,12 @@ To ensure everything is working correctly:
 1.  **Sign In**: Open the app and try signing in (this tests Supabase Auth).
 2.  **Create Project**: Create a new project called "Test Project" (tests Database write).
 3.  **Add Secret**: Add a key-value pair `TEST_KEY=123` (tests Encryption).
+4.  **SDK/MCP checks (optional)**:
+
+```bash
+npm run sdk:check
+npm run mcp:check
+```
 
 <Callout type="info">
   If you see an error about `ENCRYPTION_KEY` missing, ensure you have generated a valid 32-byte key in your `.env.local`.

@@ -79,6 +79,15 @@ When a member is restricted, Envault enforces that scope in dashboard and
 CLI/API flows. Operations targeting disallowed environments return an access
 denied error.
 
+## Agent Access Kill Switches
+
+Agent mutation paths (SDK/MCP) require two explicit enablement layers:
+
+- **Global Agent Access**: user-level master toggle in account security settings.
+- **Project Agent Access**: project-level toggle in project settings.
+
+If either switch is disabled, delegated agent mutation requests are blocked with `403`.
+
 ## Governance & Auditing
 
 Every action taken by a user is logged. Owners can view the **Audit Logs** in the project settings to see:

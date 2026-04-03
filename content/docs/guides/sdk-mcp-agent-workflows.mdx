@@ -1,0 +1,123 @@
+---
+title: SDK, MCP, and Agent Workflows
+description: Build secure agent flows with Envault SDK and MCP using human approvals and scoped delegation.
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+This guide covers Envault's TypeScript SDK and MCP server for machine-agent workflows with a strict human-in-the-loop (HITL) approval model.
+
+## Packages
+
+- SDK package: `@dinanathdash/envault-sdk`
+- MCP package: `@dinanathdash/envault-mcp-server`
+
+## Install and Update
+
+### SDK
+
+Install SDK:
+
+```bash
+npm install @dinanathdash/envault-sdk
+```
+
+Check installed SDK version:
+
+```bash
+npm ls @dinanathdash/envault-sdk
+```
+
+Check latest published SDK version:
+
+```bash
+npm view @dinanathdash/envault-sdk version
+```
+
+Update SDK to latest:
+
+```bash
+npm install @dinanathdash/envault-sdk@latest
+```
+
+### MCP
+
+Install MCP globally:
+
+```bash
+npm install -g @dinanathdash/envault-mcp-server
+```
+
+Check installed MCP version:
+
+```bash
+npx -y @dinanathdash/envault-mcp-server --version
+```
+
+Check for MCP updates:
+
+```bash
+npx -y @dinanathdash/envault-mcp-server --check-update
+```
+
+Update MCP globally:
+
+```bash
+npm install -g @dinanathdash/envault-mcp-server@latest
+```
+
+## HITL Approval Flow
+
+1. Agent requests a mutation through SDK or MCP.
+2. Envault creates a `pending_approvals` record and returns `202` with `approval_id` and `approval_url`.
+3. Human approves from web UI or terminal:
+
+```bash
+envault approve <approval_id>
+```
+
+4. Agent polls approval status and resumes only if approved.
+5. Approval payload is one-time consumable (burn-after-read behavior on approved retrieval).
+
+<Callout type="info">
+  Approval events are written to audit logs as `AGENT_APPROVED_CHANGE` or `AGENT_REJECTED_CHANGE`.
+</Callout>
+
+## API Surfaces
+
+- `POST /api/sdk/auth/delegate`: mints scoped delegated agent token (`envault_agt_...`)
+- `POST /api/sdk/secrets`: creates pending approval for mutation payloads
+- `GET /api/sdk/approvals/:id/status`: polling endpoint for pending/approved/rejected/expired states
+- `POST /api/approve/:id`: approve or reject mutation execution
+- `GET /api/sdk-version`: SDK version compatibility (`latest_version`, `min_supported_version`)
+
+## Access Controls and Kill Switches
+
+Agent mutations require all of the following:
+
+- Valid delegated agent token and project scope
+- Global user-level agent access enabled
+- Project-level agent access enabled
+- Human approval for mutation execution
+
+Global and project kill switches can be toggled in the UI under security and project settings.
+
+## MCP Tools
+
+The MCP server exposes these tools:
+
+- `envault_status`
+- `envault_pull`
+- `envault_push`
+- `envault_approve`
+- `envault_set_local_key`
+- `envault_remove_local_key`
+
+## Release Streams
+
+SDK and MCP are versioned independently using dedicated release workflows:
+
+- SDK tags: `sdk-v<version>`
+- MCP tags: `mcp-v<version>`
+
+This keeps package updates decoupled from CLI and web releases.

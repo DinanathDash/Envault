@@ -24,6 +24,11 @@ These environment variables are required to run the Envault server (Next.js app)
 | `UPSTASH_REDIS_REST_URL`          | Upstash Redis REST URL for cache-backed permission and metadata lookups.            | `https://...upstash.io`                        |
 | `UPSTASH_REDIS_REST_TOKEN`        | Upstash Redis REST token paired with the URL above.                                 | `AXXXXXXXXX`                                   |
 | `NEXT_PUBLIC_API_SIGNATURE_SALT`  | HMAC secret used to verify mutation request signatures (`x-signature`, `x-timestamp`). | `change-this-in-production`                    |
+| `ENVAULT_AGENT_SECRET`            | JWT signing secret for delegated agent tokens (`envault_agt_...`).                  | `super-random-agent-jwt-secret`                |
+| `ENVAULT_SESSION_KEY_SECRET`      | Backend verifier key for approval signature checks.                                  | `super-random-session-signing-secret`          |
+| `ENVAULT_SDK_MIN_SUPPORTED_VERSION` | Minimum SDK version accepted by server compatibility checks.                       | `1.0.0`                                        |
+| `GOOGLE_GENERATIVE_AI_API_KEY`    | API key for `/api/agent/chat` model orchestration.                                  | `AIza...`                                      |
+| `ENVAULT_AGENT_MODEL`             | AI model name used by `/api/agent/chat`.                                            | `gemini-1.5-flash`                             |
 | `CRON_SECRET`                     | Bearer token expected by `/api/cron/digest` for authenticated digest email jobs.    | `super-long-random-secret`                     |
 
 ## Optional Variables

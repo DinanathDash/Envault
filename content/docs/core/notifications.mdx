@@ -82,6 +82,14 @@ In-app alerts appear in the <Bell className="inline w-4 h-4 mr-1" /> icon in the
 
 Developers extending Envault should consult `src/lib/types/notifications.ts` for the exhaustive list of types and associated icons.
 
+### Agent Approval Notifications
+
+When SDK/MCP agent mutations are submitted, Envault emits an `agent_approval` notification containing the approval request metadata.
+
+- The request appears in-app for owners/editors to review.
+- Approvals can be completed from UI or via `envault approve <approval_id>`.
+- Final outcomes are recorded in audit logs (`AGENT_APPROVED_CHANGE`, `AGENT_REJECTED_CHANGE`).
+
 ## Example Email Template
 
 Envault uses [Resend](https://resend.com) for delivery. Email content is rendered server-side with a Handlebars template that includes a title, message body, and optional action button when appropriate. See `src/lib/infra/email.ts` for the implementation details.

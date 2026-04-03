@@ -3,6 +3,7 @@
   "pages": [
     "installation",
     "initial-setup",
+    "sdk-mcp-agent-workflows",
     "production-deployment",
     "ci-cd-integration",
     "github-integration"

@@ -35,7 +35,7 @@ export default async function PrivacyPage() {
   return (
     <LegalLayout
       title="Privacy Policy"
-      lastUpdated="30 March 2026"
+      lastUpdated="03 April 2026"
       sections={sections}
     >
       <section
@@ -278,6 +278,12 @@ export default async function PrivacyPage() {
             <strong>Error Logs</strong>: Error messages and stack traces
             (without sensitive data) to diagnose and fix issues.
           </li>
+          <li className="leading-relaxed">
+            <strong>Agent Approval Metadata</strong>: For SDK/MCP workflows, we
+            process approval identifiers, mutation key names, and approval
+            status to enforce human-in-the-loop controls and maintain audit
+            integrity.
+          </li>
         </ul>
         <p className="text-muted-foreground leading-relaxed mt-4">
           All CLI communications occur over HTTPS, and sensitive operations
@@ -357,6 +363,11 @@ export default async function PrivacyPage() {
           <li className="leading-relaxed">
             <strong>Service Communications</strong>: Updates about new features,
             maintenance, or policy changes.
+          </li>
+          <li className="leading-relaxed">
+            <strong>Agent Approval Alerts</strong>: In-app and optional email
+            notifications for pending SDK/MCP approval requests and their final
+            outcomes.
           </li>
         </ul>
         <p className="text-muted-foreground leading-relaxed mt-4">

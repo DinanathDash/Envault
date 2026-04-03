@@ -101,3 +101,27 @@ Envault supports key rotation to minimize the impact of a potential key compromi
       -H 'Authorization: Bearer <YOUR_SUPABASE_SERVICE_ROLE_KEY>'
     ```
     This function decrypts all Data Keys with the _Old Master Key_ and re-encrypts them with the _New Master Key_.
+
+## Agent Mutation Architecture (SDK/MCP)
+
+Agent-driven mutations use a delegated token + human approval execution model.
+
+<Mermaid
+  chart={`
+graph TD
+    Agent[SDK or MCP Agent] -->|POST /api/sdk/auth/delegate| Delegate[Delegate Token Issuer]
+    Delegate -->|envault_agt_ token| Agent
+    Agent -->|POST /api/sdk/secrets| Pending[(pending_approvals)]
+    Pending -->|202 approval_id + approval_url| Agent
+  Human[Owner or Editor] -->|Approve in UI or envault approve| ApproveAPI["POST /api/approve/:id"]
+    ApproveAPI -->|Execute mutations + audit event| Secrets[(secrets + audit_logs)]
+  Agent -->|Poll approval status| Poll["GET /api/sdk/approvals/:id/status"]
+    Poll -->|approved/rejected/expired| Agent
+`}
+/>
+
+Design properties:
+
+- Mutations are paused until explicit human approval.
+- Approved payload retrieval is burn-after-read to reduce replay risk.
+- Global and project-level kill switches can disable agent mutations.
