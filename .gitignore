@@ -71,3 +71,12 @@ cli-wrapper/test_extract/
 # Cloudflare Proxy
 cloudflare-proxy/.wrangler/
 cloudflare-proxy/.dev.vars
+
+# SDK generated artifacts
+src/lib/sdk/dist/
+src/lib/sdk/node_modules/
+src/lib/sdk/*.tgz
+
+# MCP server local artifacts
+mcp-server/node_modules/
+mcp-server/*.tgz

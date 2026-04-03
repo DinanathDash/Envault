@@ -290,7 +290,7 @@ export async function GET(
 
   // [READ-REPAIR] Trigger rotation for outdated secrets
   // We use the same logic as the UI.
-  const { getActiveKeyId, reEncryptSecret } =
+  const { getActiveKeyId, reEncryptSecret, needsSecretRotation } =
     await import("@/lib/utils/encryption");
 
   // Fire-and-forget background process
@@ -308,18 +308,7 @@ export async function GET(
       decryptedSecrets.map(async (s) => {
         if (!s._originalValue || !s._originalId) return;
 
-        // specific check: is it legacy or old key?
-        let needsRotation = false;
-        if (!s._originalValue.startsWith("v1:")) {
-          needsRotation = true;
-        } else {
-          const parts = s._originalValue.split(":");
-          if (parts.length === 3 && parts[1] !== activeKeyId) {
-            needsRotation = true;
-          }
-        }
-
-        if (needsRotation) {
+        if (needsSecretRotation(s._originalValue, activeKeyId)) {
           try {
             const newValue = await reEncryptSecret(s._originalValue);
             const newKeyId = newValue.split(":")[1];

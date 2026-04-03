@@ -1,0 +1,299 @@
+{
+  "generatedAt": "2026-04-03T11:48:10.473Z",
+  "sourceDir": "cli-go/cmd",
+  "commands": [
+    {
+      "varName": "rootCmd",
+      "use": "envault",
+      "short": "Envault CLI - Securely manage your environment variables",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "config",
+          "usage": "config file (default is $HOME/.envault/config.toml)",
+          "persistent": true
+        },
+        {
+          "name": "env",
+          "short": "e",
+          "usage": "Target environment (development, preview, production, etc.)",
+          "persistent": true
+        },
+        {
+          "name": "version",
+          "short": "v",
+          "usage": "Print the version number of Envault CLI",
+          "persistent": true
+        },
+        {
+          "name": "verbose",
+          "usage": "Print diagnostic information to stderr",
+          "persistent": true
+        }
+      ],
+      "path": "envault"
+    },
+    {
+      "varName": "approveCmd",
+      "use": "approve <approval_id>",
+      "short": "Approve a pending agent request without opening the browser",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault approve"
+    },
+    {
+      "varName": "auditCmd",
+      "use": "audit",
+      "short": "Audit environment files for structural integrity and git safety",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "strict",
+          "usage": "Treat warnings as errors (non-zero exit if any warnings)",
+          "persistent": false
+        },
+        {
+          "name": "format",
+          "usage": "Output format: text or json",
+          "persistent": false
+        },
+        {
+          "name": "install-hook",
+          "usage": "Install envault audit as a git pre-commit hook",
+          "persistent": false
+        },
+        {
+          "name": "template",
+          "usage": "Template file to validate parity against",
+          "persistent": false
+        },
+        {
+          "name": "file",
+          "usage": "Local env file to audit",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault audit"
+    },
+    {
+      "varName": "deployCmd",
+      "use": "deploy",
+      "short": "Push secrets from .env to Envault",
+      "aliases": [
+        "push"
+      ],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "force",
+          "short": "f",
+          "usage": "Deploy without confirmation",
+          "persistent": false
+        },
+        {
+          "name": "dry-run",
+          "usage": "Show what would be deployed without actually deploying",
+          "persistent": false
+        },
+        {
+          "name": "project",
+          "short": "p",
+          "usage": "Project ID",
+          "persistent": false
+        },
+        {
+          "name": "file",
+          "usage": "Local .env file path override",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault deploy"
+    },
+    {
+      "varName": "diffCmd",
+      "use": "diff",
+      "short": "Compare local env file with remote vault secrets",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "project",
+          "short": "p",
+          "usage": "Project ID",
+          "persistent": false
+        },
+        {
+          "name": "file",
+          "usage": "Local .env file path override",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault diff"
+    },
+    {
+      "varName": "doctorCmd",
+      "use": "doctor",
+      "short": "Run local diagnostics and suggested fixes",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault doctor"
+    },
+    {
+      "varName": "envCmd",
+      "use": "env",
+      "short": "Manage local environment mappings",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault env"
+    },
+    {
+      "varName": "envDefaultCmd",
+      "use": "default",
+      "short": "Set the default environment",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "envCmd",
+      "path": "envault env default"
+    },
+    {
+      "varName": "envMapCmd",
+      "use": "map",
+      "short": "Map an environment to a local .env file",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "file",
+          "usage": "Local .env file path",
+          "persistent": false
+        }
+      ],
+      "parentVar": "envCmd",
+      "path": "envault env map"
+    },
+    {
+      "varName": "envUnmapCmd",
+      "use": "unmap",
+      "short": "Remove a local file mapping for an environment",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "envCmd",
+      "path": "envault env unmap"
+    },
+    {
+      "varName": "generateHooksCmd",
+      "use": "generate-hooks",
+      "short": "Generate Git hooks for Envault",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault generate-hooks"
+    },
+    {
+      "varName": "initCmd",
+      "use": "init",
+      "short": "Initialize Envault in the current directory",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault init"
+    },
+    {
+      "varName": "loginCmd",
+      "use": "login",
+      "short": "Authenticate with Envault",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault login"
+    },
+    {
+      "varName": "pullCmd",
+      "use": "pull",
+      "short": "Fetch secrets and write to .env",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "force",
+          "short": "f",
+          "usage": "Overwrite .env without confirmation",
+          "persistent": false
+        },
+        {
+          "name": "project",
+          "short": "p",
+          "usage": "Project ID",
+          "persistent": false
+        },
+        {
+          "name": "file",
+          "usage": "Local .env file path override",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault pull"
+    },
+    {
+      "varName": "runCmd",
+      "use": "run -- <command>",
+      "short": "Run a command with secrets injected from Envault",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "project",
+          "short": "p",
+          "usage": "Project ID",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault run"
+    },
+    {
+      "varName": "statusCmd",
+      "use": "status",
+      "short": "Show current auth, project, and environment context",
+      "aliases": [],
+      "hidden": false,
+      "flags": [
+        {
+          "name": "project",
+          "short": "p",
+          "usage": "Project ID",
+          "persistent": false
+        }
+      ],
+      "parentVar": "rootCmd",
+      "path": "envault status"
+    },
+    {
+      "varName": "versionCmd",
+      "use": "version",
+      "short": "Print the version number of Envault CLI",
+      "aliases": [],
+      "hidden": false,
+      "flags": [],
+      "parentVar": "rootCmd",
+      "path": "envault version"
+    }
+  ]
+}

@@ -241,6 +241,44 @@ export async function getActiveKeyId(): Promise<string> {
 }
 
 /**
+ * Basic structural check for legacy ciphertext format.
+ * Legacy values are base64-encoded bytes: IV(16) + CIPHERTEXT(n>0) + TAG(16).
+ */
+export function isLegacyCiphertextCandidate(value: string): boolean {
+  if (!value || value.startsWith("v1:")) {
+    return false;
+  }
+
+  try {
+    const combined = Buffer.from(value, "base64");
+    const minLength = IV_LENGTH + AUTH_TAG_LENGTH + 1;
+    return combined.length >= minLength;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether the secret should go through read-repair key rotation.
+ */
+export function needsSecretRotation(
+  secretValue: string,
+  activeKeyId: string,
+): boolean {
+  if (!secretValue) return false;
+
+  if (secretValue.startsWith("v1:")) {
+    const parts = secretValue.split(":");
+    if (parts.length !== 3) {
+      return false;
+    }
+    return parts[1] !== activeKeyId;
+  }
+
+  return isLegacyCiphertextCandidate(secretValue);
+}
+
+/**
  * Re-encrypts a secret with the current active key.
  * Used for "Read-Repair" - upgrading old secrets on access.
  *

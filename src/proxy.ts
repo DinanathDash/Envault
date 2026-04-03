@@ -38,6 +38,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const isCliApiRoute = matchesRoute(pathname, "/api/cli");
+  const isSdkApiRoute = matchesRoute(pathname, "/api/sdk");
   const isTransferApiRoute =
     /^\/api\/projects\/[^/]+\/transfer\/(initiate|accept|reject)$/.test(
       pathname,
@@ -66,13 +67,19 @@ export async function proxy(request: NextRequest) {
     matchesRoute(pathname, route),
   );
   const isCliBearerRequest = isCliApiRoute && hasBearerAuth;
+  const isSdkBearerRequest = isSdkApiRoute && authHeader.startsWith("Bearer envault_agt_");
+  const isApproveMutation = pathname.startsWith("/api/approve/");
+  const isSdkAuthDelegate = pathname === "/api/sdk/auth/delegate";
 
   // HMAC Verification for mutations
   if (
     ["POST", "PUT", "PATCH", "DELETE"].includes(method) &&
     !isPublicApi &&
     !isCliBearerRequest &&
-    !isTransferApiRoute
+    !isSdkBearerRequest &&
+    !isApproveMutation &&
+    !isTransferApiRoute &&
+    !isSdkAuthDelegate
   ) {
     const signature = request.headers.get("x-signature");
     const timestampStr = request.headers.get("x-timestamp");
@@ -190,7 +197,7 @@ export async function proxy(request: NextRequest) {
     isProtectedRoute ||
     isPublicRoute ||
     isDynamicHandleRoute ||
-    (pathname.startsWith("/api") && !isPublicApi && !isCliBearerRequest);
+    (pathname.startsWith("/api") && !isPublicApi && !isCliBearerRequest && !isSdkBearerRequest);
 
   let supabaseResponse = NextResponse.next({
     request,
@@ -248,6 +255,8 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api") &&
     !isPublicApi &&
     !isCliBearerRequest &&
+    !isSdkBearerRequest &&
+    !isSdkAuthDelegate &&
     !user
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

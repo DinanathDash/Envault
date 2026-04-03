@@ -16,6 +16,13 @@ export function HmacProvider({ children }: { children: React.ReactNode }) {
       // Only sign mutating requests
       const method = (config.method || "GET").toUpperCase();
       if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+        const existingHeaders = new Headers(config.headers || {});
+
+        // Respect route-specific signatures (e.g. HITL approve API) and do not overwrite.
+        if (existingHeaders.has("X-Signature") || existingHeaders.has("x-signature")) {
+          return originalFetch(resource, config);
+        }
+
         const timestamp = Date.now().toString();
         const secret =
           process.env.NEXT_PUBLIC_API_SIGNATURE_SALT ||
@@ -56,7 +63,7 @@ export function HmacProvider({ children }: { children: React.ReactNode }) {
           );
 
           // Add headers
-          const headers = new Headers(config.headers || {});
+          const headers = existingHeaders;
           headers.set("X-Timestamp", timestamp);
           headers.set("X-Signature", signature);
 

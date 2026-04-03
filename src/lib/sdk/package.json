@@ -1,0 +1,38 @@
+{
+  "name": "@dinanathdash/envault-sdk",
+  "version": "1.0.0",
+  "description": "Envault TypeScript SDK",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/agent-interceptor.cjs",
+  "module": "./dist/agent-interceptor.js",
+  "types": "./dist/agent-interceptor.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/agent-interceptor.d.ts",
+      "import": "./dist/agent-interceptor.js",
+      "require": "./dist/agent-interceptor.cjs"
+    }
+  },
+  "scripts": {
+    "prebuild": "node ./scripts/inject-version.mjs",
+    "build": "npm run prebuild && tsup",
+    "typecheck": "tsc -p tsconfig.sdk.json --noEmit",
+    "postinstall": "node ./postinstall.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
