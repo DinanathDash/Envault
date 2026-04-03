@@ -88,6 +88,11 @@ func TestRunCmd_NoConfigLeakOnStdout(t *testing.T) {
 
 	// Stand up a plain HTTP server for subprocess tests (explicitly allowed via ENVAULT_ALLOW_INSECURE_HTTP).
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		if strings.Contains(r.URL.Path, "/secrets") {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"secrets":[]}`))
@@ -188,6 +193,11 @@ func TestErrorsRouteToStderr_RunFailed(t *testing.T) {
 func TestPullCmd_NoLeftoverTempFile(t *testing.T) {
 	// A server that returns one secret.
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		if strings.Contains(r.URL.Path, "/secrets") {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"secrets":[{"key":"FOO","value":"bar"}]}`))
@@ -223,6 +233,11 @@ func TestPullCmd_NoLeftoverTempFile(t *testing.T) {
 
 func TestPullCmd_SecretWrittenToEnvFile(t *testing.T) {
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		if strings.Contains(r.URL.Path, "/secrets") {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"secrets":[{"key":"MY_KEY","value":"my_val"}]}`))
@@ -261,6 +276,11 @@ func TestPullCmd_SIGINTExitsWithCode130(t *testing.T) {
 	// SIGINT - this ensures signal.Notify is set up inside the process.
 	requestArrived := make(chan struct{}, 1)
 	slowSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		select {
 		case requestArrived <- struct{}{}:
 		default:
@@ -326,6 +346,11 @@ func TestDeployCmd_SIGINTExitsWithCode130(t *testing.T) {
 	// Channel to confirm the server received the request.
 	requestArrived := make(chan struct{}, 1)
 	slowSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		select {
 		case requestArrived <- struct{}{}:
 		default:
@@ -390,6 +415,11 @@ func TestDeployCmd_SIGINTExitsWithCode130(t *testing.T) {
 
 func TestRunCmd_PropagatesChildExitCode(t *testing.T) {
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		if strings.Contains(r.URL.Path, "/secrets") {
 			_, _ = w.Write([]byte(`{"secrets":[]}`))
 			return
@@ -424,6 +454,11 @@ func TestRunCmd_PropagatesChildExitCode(t *testing.T) {
 
 func TestRunCmd_StdoutIsPureChildOutput(t *testing.T) {
 	mockSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/environments") {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"environments":[{"slug":"development","isDefault":true}]}`))
+			return
+		}
 		if strings.Contains(r.URL.Path, "/secrets") {
 			_, _ = w.Write([]byte(`{"secrets":[{"key":"INJECTED","value":"yes"}]}`))
 			return

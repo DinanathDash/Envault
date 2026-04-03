@@ -1,0 +1,46 @@
+name: Publish MCP Server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "mcp-server/**"
+      - ".github/workflows/publish-mcp.yml"
+      - "release.mcp.config.js"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publish-mcp-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish MCP to npm
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install --no-save semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/npm @semantic-release/git @semantic-release/exec conventional-changelog-conventionalcommits
+
+      - name: Semantic Release (MCP)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+        run: npx semantic-release --extends ./release.mcp.config.js

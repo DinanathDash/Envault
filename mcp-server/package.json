@@ -1,0 +1,30 @@
+{
+  "name": "@dinanathdash/envault-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server for Envault CLI operations",
+  "main": "server.mjs",
+  "bin": {
+    "envault-mcp-server": "server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "version": "node server.mjs --version",
+    "check:update": "node server.mjs --check-update",
+    "check": "node --check server.mjs",
+    "prepublishOnly": "npm run check"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.3"
+  }
+}
