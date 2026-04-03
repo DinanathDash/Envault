@@ -13,6 +13,18 @@ interface PageProps {
   searchParams: Promise<{ env?: string }>;
 }
 
+function normalizeActorName(name?: string): string | undefined {
+  if (!name) return undefined;
+  const viaMatch = name.match(/\s+via\s+(.+)$/i);
+  if (/^agent:/i.test(name) || /headless|e2e|test/i.test(name)) {
+    if (viaMatch?.[1]) {
+      return `Envault Agent via ${viaMatch[1].trim()}`;
+    }
+    return "Envault Agent";
+  }
+  return name;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -377,9 +389,10 @@ export default async function SharedProjectPage({
                         | undefined) || secret.user_id,
                     email:
                       (secret.created_by_email as string | undefined) || "",
-                    username:
+                    username: normalizeActorName(
                       (secret.created_by_name as string | undefined) ||
-                      undefined,
+                        undefined,
+                    ),
                     avatar: creatorFromMap?.avatar,
                   }
                 : creatorFromMap
@@ -394,9 +407,10 @@ export default async function SharedProjectPage({
                       email:
                         (secret.last_updated_by_email as string | undefined) ||
                         "",
-                      username:
+                      username: normalizeActorName(
                         (secret.last_updated_by_name as string | undefined) ||
-                        undefined,
+                          undefined,
+                      ),
                       avatar: updaterFromMap?.avatar,
                     }
                   : updaterFromMap

@@ -15,6 +15,7 @@ import {
   Check,
   Info,
   ArrowRightLeft,
+  Bot,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { ImportEnvDialog } from "@/components/dialogs/import-env-dialog";
 import { Project, useEnvaultStore } from "@/lib/stores/store";
 import { createClient } from "@/lib/supabase/client";
 import { triggerHaptic } from "@/lib/utils/haptic";
+import { useHotkeys } from "@/hooks/use-hotkeys";
 
 import {
   DropdownMenu,
@@ -65,6 +67,16 @@ import { TransferOwnershipDialog } from "@/components/dialogs/transfer-ownership
 import { AppHeader } from "@/components/dashboard/ui/app-header";
 import { Edit3, Github, Loader2, ShieldCheck } from "lucide-react";
 import { formatEnvironmentLabel } from "@/lib/utils/environment-label";
+import { getModifierKey } from "@/lib/utils/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 
 interface ProjectDetailClientProps {
   project: Project;
@@ -86,12 +98,21 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [githubDialogOpen, setGithubDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [agentAccessDialogOpen, setAgentAccessDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [idCopied, setIdCopied] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRequestingAccess, setIsRequestingAccess] = useState(false);
+  const [projectAgentAccess, setProjectAgentAccess] = useState(
+    !!project.agent_access_enabled,
+  );
+  const [pendingProjectAgentAccess, setPendingProjectAgentAccess] = useState(
+    !!project.agent_access_enabled,
+  );
+  const [isUpdatingProjectAgentAccess, setIsUpdatingProjectAgentAccess] =
+    useState(false);
   const activeEnvironment = project.active_environment_slug || "development";
   const [optimisticEnv, setOptimisticEnv] = useState(activeEnvironment);
   const [isPending, startTransition] = React.useTransition();
@@ -99,6 +120,14 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
   useEffect(() => {
     setOptimisticEnv(activeEnvironment);
   }, [activeEnvironment]);
+
+  useEffect(() => {
+    setProjectAgentAccess(!!project.agent_access_enabled);
+    setPendingProjectAgentAccess(!!project.agent_access_enabled);
+  }, [project.agent_access_enabled]);
+
+  const hasProjectAgentAccessChanges =
+    pendingProjectAgentAccess !== projectAgentAccess;
 
   // Hybrid Realtime Sync for Editor
   const refreshSecrets = React.useCallback(() => {
@@ -393,6 +422,49 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
     }
   };
 
+  const handleToggleProjectAgentAccess = async () => {
+    if (!hasProjectAgentAccessChanges || isUpdatingProjectAgentAccess) return;
+
+    setIsUpdatingProjectAgentAccess(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("projects")
+        .update({ agent_access_enabled: pendingProjectAgentAccess })
+        .eq("id", project.id);
+
+      if (error) {
+        toast.error("Failed to update project agent access.");
+        return;
+      }
+
+      setProjectAgentAccess(pendingProjectAgentAccess);
+      toast.success(
+        pendingProjectAgentAccess
+          ? "Project agent access enabled."
+          : "Project agent access disabled.",
+      );
+      router.refresh();
+    } finally {
+      setIsUpdatingProjectAgentAccess(false);
+    }
+  };
+
+  useHotkeys(
+    "mod+s",
+    (e) => {
+      if (
+        agentAccessDialogOpen &&
+        hasProjectAgentAccessChanges &&
+        !isUpdatingProjectAgentAccess
+      ) {
+        e.preventDefault();
+        void handleToggleProjectAgentAccess();
+      }
+    },
+    { enableOnFormTags: true },
+  );
+
   const projectActions =
     project.role === "owner" || project.role === "editor" ? (
       <div className="flex items-center gap-2">
@@ -416,6 +488,11 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
             {project.role === "owner" && (
               <DropdownMenuItem onClick={() => setTransferDialogOpen(true)}>
                 <ArrowRightLeft className="w-4 h-4 mr-2" /> Transfer Ownership
+              </DropdownMenuItem>
+            )}
+            {project.role === "owner" && (
+              <DropdownMenuItem onClick={() => setAgentAccessDialogOpen(true)}>
+                <Bot className="w-4 h-4 mr-2" /> Agent Access
               </DropdownMenuItem>
             )}
             {project.role === "owner" && (
@@ -706,6 +783,74 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
         open={transferDialogOpen}
         onOpenChange={setTransferDialogOpen}
       />
+
+      <Dialog
+        open={agentAccessDialogOpen}
+        onOpenChange={(open) => {
+          setAgentAccessDialogOpen(open);
+          if (!open) {
+            setPendingProjectAgentAccess(projectAgentAccess);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Project Agent Access</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Enable or disable SDK agent mutation access for this project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-md border p-4">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Agent Access</Label>
+              <p className="text-xs text-muted-foreground">
+                This acts as a project-level kill switch for agent mutations.
+              </p>
+            </div>
+            {isUpdatingProjectAgentAccess ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                checked={pendingProjectAgentAccess}
+                onCheckedChange={setPendingProjectAgentAccess}
+                disabled={isUpdatingProjectAgentAccess}
+                aria-label="Toggle project agent access"
+                className="self-end sm:self-auto"
+              />
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPendingProjectAgentAccess(projectAgentAccess);
+                setAgentAccessDialogOpen(false);
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => void handleToggleProjectAgentAccess()}
+              disabled={!hasProjectAgentAccessChanges || isUpdatingProjectAgentAccess}
+            >
+              {isUpdatingProjectAgentAccess && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Save Changes
+              {!isUpdatingProjectAgentAccess && (
+                <span className="ml-2 hidden sm:flex items-center gap-1">
+                  <Kbd variant="primary" size="xs">
+                    {getModifierKey("mod")}
+                  </Kbd>
+                  <Kbd variant="primary" size="xs">
+                    S
+                  </Kbd>
+                </span>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

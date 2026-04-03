@@ -68,6 +68,22 @@ export function SecurityTab({ user }: { user: User | null }) {
 
   const [identities, setIdentities] = useState<UserIdentity[]>([]);
   const [authLoading, setAuthLoading] = useState<string | null>(null);
+  const [draftGoogleConnected, setDraftGoogleConnected] = useState(false);
+  const [draftGithubConnected, setDraftGithubConnected] = useState(false);
+  const [agentAccessLoading, setAgentAccessLoading] = useState(true);
+  const [globalAgentAccess, setGlobalAgentAccess] = useState(false);
+  const [draftGlobalAgentAccess, setDraftGlobalAgentAccess] = useState(false);
+  const [savingAgentAccess, setSavingAgentAccess] = useState(false);
+
+  const googleConnected =
+    identities.length > 0
+      ? identities.some((id) => id.provider === "google")
+      : !!user?.authProviders?.includes("google");
+
+  const githubConnected =
+    identities.length > 0
+      ? identities.some((id) => id.provider === "github")
+      : !!user?.authProviders?.includes("github");
 
   const fetchIdentities = useCallback(async () => {
     const supabase = createClient();
@@ -82,6 +98,11 @@ export function SecurityTab({ user }: { user: User | null }) {
   useEffect(() => {
     fetchIdentities();
   }, [fetchIdentities]);
+
+  useEffect(() => {
+    setDraftGoogleConnected(googleConnected);
+    setDraftGithubConnected(githubConnected);
+  }, [googleConnected, githubConnected]);
 
   const handleLink = async (provider: "google" | "github") => {
     setAuthLoading(provider);
@@ -98,17 +119,19 @@ export function SecurityTab({ user }: { user: User | null }) {
       });
       if (error) throw error;
       // Note: page will redirect upon successful start of linking
+      return true;
     } catch (error) {
       const err = error as Error;
       toast.error(err.message || `Failed to link ${provider}`);
       setAuthLoading(null);
+      return false;
     }
   };
 
   const handleUnlink = async (provider: string) => {
     if (identities.length <= 1) {
       toast.error("You cannot unlink your only login method.");
-      return;
+      return false;
     }
     setAuthLoading(provider);
     try {
@@ -123,9 +146,11 @@ export function SecurityTab({ user }: { user: User | null }) {
 
       toast.success(`${provider} disconnected successfully`);
       await fetchIdentities();
+      return true;
     } catch (error) {
       const err = error as Error;
       toast.error(err.message || `Failed to unlink ${provider}`);
+      return false;
     } finally {
       setAuthLoading(null);
     }
@@ -150,6 +175,105 @@ export function SecurityTab({ user }: { user: User | null }) {
     return () => clearTimeout(timer);
   }, [fetchTokens]);
 
+  const fetchAgentAccessSettings = useCallback(async () => {
+    setAgentAccessLoading(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser) {
+        setGlobalAgentAccess(false);
+        setDraftGlobalAgentAccess(false);
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("global_agent_access_enabled")
+        .eq("id", authUser.id)
+        .maybeSingle();
+
+      if (profileError) {
+        toast.error("Failed to load global agent access setting.");
+      }
+
+      const nextGlobal = !!profile?.global_agent_access_enabled;
+
+      setGlobalAgentAccess(nextGlobal);
+      setDraftGlobalAgentAccess(nextGlobal);
+    } finally {
+      setAgentAccessLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAgentAccessSettings();
+  }, [fetchAgentAccessSettings]);
+
+  const hasAgentAccessChanges = draftGlobalAgentAccess !== globalAgentAccess;
+  const hasSocialChanges =
+    draftGoogleConnected !== googleConnected ||
+    draftGithubConnected !== githubConnected;
+
+  const handleSaveAgentAccess = async () => {
+    if (!hasAgentAccessChanges || savingAgentAccess) return;
+
+    const supabase = createClient();
+    setSavingAgentAccess(true);
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser) {
+        toast.error("You must be signed in.");
+        return;
+      }
+
+      if (draftGlobalAgentAccess !== globalAgentAccess) {
+        const { error: globalError } = await supabase
+          .from("profiles")
+          .update({ global_agent_access_enabled: draftGlobalAgentAccess })
+          .eq("id", authUser.id);
+
+        if (globalError) {
+          toast.error("Failed to update global agent access.");
+          return;
+        }
+      }
+
+      setGlobalAgentAccess(draftGlobalAgentAccess);
+      toast.success("Global agent access saved.");
+    } finally {
+      setSavingAgentAccess(false);
+    }
+  };
+
+  const handleSaveSocialConnections = async () => {
+    if (!hasSocialChanges || authLoading) return;
+
+    if (draftGoogleConnected !== googleConnected) {
+      const success = draftGoogleConnected
+        ? await handleLink("google")
+        : await handleUnlink("google");
+      if (!success) return;
+      // Linking redirects to provider flow, so subsequent changes happen on return.
+      if (draftGoogleConnected) return;
+    }
+
+    if (draftGithubConnected !== githubConnected) {
+      const success = draftGithubConnected
+        ? await handleLink("github")
+        : await handleUnlink("github");
+      if (!success) return;
+      if (draftGithubConnected) return;
+    }
+
+    toast.success("Social login settings saved.");
+  };
+
   const handleRevoke = async (id: string, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     setRevokingId(id);
@@ -172,11 +296,26 @@ export function SecurityTab({ user }: { user: User | null }) {
     }
   });
 
-  useHotkeys("alt+x", () => {
-    if (tokens.length > 0) {
-      handleRevoke(tokens[0].id);
-    }
-  });
+  useHotkeys(
+    "mod+s",
+    (e) => {
+      if (
+        (hasAgentAccessChanges && !savingAgentAccess) ||
+        (hasSocialChanges && !authLoading)
+      ) {
+        e.preventDefault();
+        void (async () => {
+          if (hasAgentAccessChanges && !savingAgentAccess) {
+            await handleSaveAgentAccess();
+          }
+          if (hasSocialChanges && !authLoading) {
+            await handleSaveSocialConnections();
+          }
+        })();
+      }
+    },
+    { enableOnFormTags: true },
+  );
 
   const getDeviceIcon = (metadata: Token["metadata"]) => {
     const platform = (metadata?.platform || metadata?.type || "").toLowerCase();
@@ -230,6 +369,59 @@ export function SecurityTab({ user }: { user: User | null }) {
 
       <Card>
         <CardHeader>
+          <CardTitle>Agent Access Control</CardTitle>
+          <CardDescription>
+            Control machine-agent mutation access globally.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 border rounded-md bg-card">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Global Agent Access</Label>
+              <p className="text-xs text-muted-foreground">
+                Master kill switch for all SDK agent mutation actions.
+              </p>
+            </div>
+            {savingAgentAccess ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Switch
+                checked={draftGlobalAgentAccess}
+                onCheckedChange={setDraftGlobalAgentAccess}
+                disabled={agentAccessLoading || savingAgentAccess}
+                aria-label="Toggle global agent access"
+              />
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Project-level agent controls are available in each project settings menu.
+          </p>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => void handleSaveAgentAccess()}
+              disabled={!hasAgentAccessChanges || savingAgentAccess || agentAccessLoading}
+            >
+              {savingAgentAccess && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Save Agent Access
+              {!savingAgentAccess && (
+                <span className="ml-2 hidden sm:flex items-center gap-1">
+                  <Kbd variant="primary" size="xs">
+                    {getModifierKey("mod")}
+                  </Kbd>
+                  <Kbd variant="primary" size="xs">S</Kbd>
+                </span>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Connected Accounts</CardTitle>
           <CardDescription>Manage your social login providers.</CardDescription>
         </CardHeader>
@@ -263,11 +455,7 @@ export function SecurityTab({ user }: { user: User | null }) {
               <div className="space-y-0.5">
                 <Label className="text-sm font-medium">Google</Label>
                 <p className="text-xs text-muted-foreground">
-                  {(
-                    identities.length > 0
-                      ? identities.some((id) => id.provider === "google")
-                      : user?.authProviders?.includes("google")
-                  )
+                  {googleConnected
                     ? "Connected to Google"
                     : "Not connected"}
                 </p>
@@ -277,18 +465,8 @@ export function SecurityTab({ user }: { user: User | null }) {
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
             ) : (
               <Switch
-                checked={
-                  identities.length > 0
-                    ? identities.some((id) => id.provider === "google")
-                    : user?.authProviders?.includes("google")
-                }
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    handleLink("google");
-                  } else {
-                    handleUnlink("google");
-                  }
-                }}
+                checked={draftGoogleConnected}
+                onCheckedChange={setDraftGoogleConnected}
                 disabled={authLoading !== null}
                 aria-label="Toggle Google connection"
                 className="data-[state=checked]:bg-green-500"
@@ -311,11 +489,7 @@ export function SecurityTab({ user }: { user: User | null }) {
               <div className="space-y-0.5">
                 <Label className="text-sm font-medium">GitHub</Label>
                 <p className="text-xs text-muted-foreground">
-                  {(
-                    identities.length > 0
-                      ? identities.some((id) => id.provider === "github")
-                      : user?.authProviders?.includes("github")
-                  )
+                  {githubConnected
                     ? "Connected to GitHub"
                     : "Not connected"}
                 </p>
@@ -325,23 +499,31 @@ export function SecurityTab({ user }: { user: User | null }) {
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
             ) : (
               <Switch
-                checked={
-                  identities.length > 0
-                    ? identities.some((id) => id.provider === "github")
-                    : user?.authProviders?.includes("github")
-                }
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    handleLink("github");
-                  } else {
-                    handleUnlink("github");
-                  }
-                }}
+                checked={draftGithubConnected}
+                onCheckedChange={setDraftGithubConnected}
                 disabled={authLoading !== null}
                 aria-label="Toggle GitHub connection"
                 className="data-[state=checked]:bg-green-500"
               />
             )}
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => void handleSaveSocialConnections()}
+              disabled={!hasSocialChanges || authLoading !== null}
+            >
+              {authLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Social Login
+              {!authLoading && (
+                <span className="ml-2 hidden sm:flex items-center gap-1">
+                  <Kbd variant="primary" size="xs">
+                    {getModifierKey("mod")}
+                  </Kbd>
+                  <Kbd variant="primary" size="xs">S</Kbd>
+                </span>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>

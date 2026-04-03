@@ -20,6 +20,7 @@ export type Project = {
   name: string;
   slug: string;
   user_id: string;
+  agent_access_enabled?: boolean | null;
   ui_mode?: "simple" | "advanced";
   default_environment_slug?: string;
   active_environment_slug?: string;

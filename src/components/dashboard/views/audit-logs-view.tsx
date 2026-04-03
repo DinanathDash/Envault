@@ -81,6 +81,27 @@ interface AuditLogMetadata {
   installation_id?: number;
   account_login?: string;
   account_type?: string;
+  approval_id?: string;
+  result?: string;
+  mutation_count?: number;
+  keys?: string[];
+  agent_id?: string;
+  agent_label?: string;
+}
+
+function getFriendlyAgentLabel(metadata?: AuditLogMetadata): string {
+  const explicitLabel = firstNonEmpty(metadata?.agent_label);
+  if (explicitLabel) return explicitLabel;
+
+  const rawId = firstNonEmpty(metadata?.agent_id);
+  if (!rawId) return "Envault Agent";
+
+  // Hide internal/testing identifiers from user-facing audit summaries.
+  if (/headless|e2e|test/i.test(rawId)) {
+    return "Envault Agent";
+  }
+
+  return rawId;
 }
 
 interface AuditLog {
@@ -133,6 +154,8 @@ const ACTION_OPTIONS = [
   },
   { value: "github.repo_linked", label: "GitHub Repo Linked" },
   { value: "github.repo_unlinked", label: "GitHub Repo Unlinked" },
+  { value: "AGENT_APPROVED_CHANGE", label: "Agent Approved Change" },
+  { value: "AGENT_REJECTED_CHANGE", label: "Agent Rejected Change" },
 ];
 
 function formatDiffValue(value: unknown): string {
@@ -316,6 +339,10 @@ function getActionIcon(action: string) {
   if (action === "environment.access_revoked")
     return <ShieldOff className="h-3.5 w-3.5" />;
   if (action.startsWith("github.")) return <Github className="h-3.5 w-3.5" />;
+  if (action === "AGENT_APPROVED_CHANGE")
+    return <ShieldCheck className="h-3.5 w-3.5" />;
+  if (action === "AGENT_REJECTED_CHANGE")
+    return <ShieldOff className="h-3.5 w-3.5" />;
   return <AlertCircle className="h-3.5 w-3.5" />;
 }
 
@@ -406,6 +433,12 @@ function isMemberRelatedAction(action: string): boolean {
 }
 
 function getActionBadgeClass(action: string): string {
+  if (action === "AGENT_APPROVED_CHANGE") {
+    return "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+  }
+  if (action === "AGENT_REJECTED_CHANGE") {
+    return "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300";
+  }
   if (action === "transfer.requested") {
     return "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300";
   }
@@ -652,6 +685,31 @@ function getNonDiffContextSummary(
     const account = firstNonEmpty(metadata?.account_login);
     if (account) return `Disconnected GitHub account @${account}`;
     return "GitHub account disconnected";
+  }
+
+  if (action === "AGENT_APPROVED_CHANGE") {
+    const agentLabel = getFriendlyAgentLabel(metadata);
+    const environment = metadata?.environment
+      ? String(metadata.environment)
+      : null;
+    const mutationCount =
+      typeof metadata?.mutation_count === "number" ? metadata.mutation_count : null;
+    const envPart = environment ? ` in ${environment}` : "";
+
+    if (mutationCount !== null) {
+      return `Approved ${mutationCount} agent mutation(s) from ${agentLabel}${envPart}`;
+    }
+    return `Approved agent change from ${agentLabel}${envPart}`;
+  }
+
+  if (action === "AGENT_REJECTED_CHANGE") {
+    const agentLabel = getFriendlyAgentLabel(metadata);
+    const environment = metadata?.environment
+      ? String(metadata.environment)
+      : null;
+    const envPart = environment ? ` in ${environment}` : "";
+
+    return `Rejected agent change from ${agentLabel}${envPart}`;
   }
 
   return null;

@@ -13,6 +13,18 @@ interface PageProps {
   searchParams: Promise<{ env?: string }>;
 }
 
+function normalizeActorName(name?: string): string | undefined {
+  if (!name) return undefined;
+  const viaMatch = name.match(/\s+via\s+(.+)$/i);
+  if (/^agent:/i.test(name) || /headless|e2e|test/i.test(name)) {
+    if (viaMatch?.[1]) {
+      return `Envault Agent via ${viaMatch[1].trim()}`;
+    }
+    return "Envault Agent";
+  }
+  return name;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -318,6 +330,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
     name: project.name,
     slug: project.slug,
     user_id: project.user_id,
+    agent_access_enabled: project.agent_access_enabled,
     github_repo_full_name: project.github_repo_full_name ?? null,
     ui_mode: project.ui_mode || "simple",
     default_environment_slug:
@@ -372,8 +385,9 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
                   (secret.created_by_user_id_snapshot as string | undefined) ||
                   secret.user_id,
                 email: (secret.created_by_email as string | undefined) || "",
-                username:
+                username: normalizeActorName(
                   (secret.created_by_name as string | undefined) || undefined,
+                ),
                 avatar: creatorFromMap?.avatar,
               }
             : creatorFromMap
@@ -395,9 +409,10 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
                   id: updaterSnapshotId || "",
                   email:
                     (secret.last_updated_by_email as string | undefined) || "",
-                  username:
+                  username: normalizeActorName(
                     (secret.last_updated_by_name as string | undefined) ||
-                    undefined,
+                      undefined,
+                  ),
                   avatar: updaterFromMap?.avatar,
                 }
               : updaterFromMap
@@ -422,7 +437,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
   };
 
   // [READ-REPAIR] Post-Process: Trigger rotation for outdated secrets
-  const { getActiveKeyId, reEncryptSecret } =
+  const { getActiveKeyId, reEncryptSecret, needsSecretRotation } =
     await import("@/lib/utils/encryption");
 
   // We fetch the active key ID once
@@ -435,15 +450,9 @@ export default async function ProjectPage({ params, searchParams }: PageProps) {
 
   if (activeKeyId) {
     // Identify secrets that need rotation
-    const outdatedSecrets = (allSecrets || []).filter((s) => {
-      if (!s.value.startsWith("v1:")) return true; // Legacy (no version) -> needs rotation
-      const parts = s.value.split(":");
-      if (parts.length === 3) {
-        const keyId = parts[1];
-        return keyId !== activeKeyId;
-      }
-      return false;
-    });
+    const outdatedSecrets = (allSecrets || []).filter((s) =>
+      needsSecretRotation(s.value, activeKeyId),
+    );
 
     if (outdatedSecrets.length > 0) {
       // Fire-and-Forget Rotation

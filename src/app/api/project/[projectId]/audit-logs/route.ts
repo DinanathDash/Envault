@@ -22,6 +22,8 @@ const ALLOWED_AUDIT_ACTIONS = new Set([
   "github.account_disconnected",
   "github.repo_linked",
   "github.repo_unlinked",
+  "AGENT_APPROVED_CHANGE",
+  "AGENT_REJECTED_CHANGE",
 ]);
 
 type EnvAccessState = "none" | "some" | "all" | "unknown";

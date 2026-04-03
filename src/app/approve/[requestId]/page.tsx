@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import type { Metadata } from "next";
 import { formatEnvironmentLabel } from "@/lib/utils/environment-label";
+import { AgentApproveForm } from "./agent-approve-form";
 
 interface ApprovePageProps {
   params: Promise<{ requestId: string }>;
@@ -36,6 +37,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ApprovePage({ params }: ApprovePageProps) {
   const { requestId } = await params;
   const supabase = await createClient();
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -52,6 +55,92 @@ export default async function ApprovePage({ params }: ApprovePageProps) {
     .single();
 
   if (requestError || !request) {
+    const { data: pendingApproval } = await admin
+      .from("pending_approvals")
+      .select("id, status, payload_hash, project_id, agent_id, projects(name, user_id, slug)")
+      .eq("id", requestId)
+      .single();
+
+    if (pendingApproval) {
+      const projectOwnerId =
+        (pendingApproval.projects as unknown as { user_id?: string } | null)
+          ?.user_id || null;
+
+      const { data: member } = await supabase
+        .from("project_members")
+        .select("role")
+        .eq("project_id", pendingApproval.project_id)
+        .eq("user_id", user.id)
+        .in("role", ["owner", "editor"])
+        .single();
+
+      const isProjectOwner = projectOwnerId === user.id;
+      if (!isProjectOwner && !member) {
+        redirect("/dashboard");
+      }
+
+      const projectName =
+        (pendingApproval.projects as unknown as { name?: string } | null)?.name ||
+        "Project";
+      const projectSlug =
+        (pendingApproval.projects as unknown as { slug?: string } | null)
+          ?.slug || "";
+      const ownerUsername = projectOwnerId
+        ? (
+            await admin
+              .from("profiles")
+              .select("username")
+              .eq("id", projectOwnerId)
+              .maybeSingle()
+          ).data?.username || ""
+        : "";
+      const redirectPath = isProjectOwner
+        ? projectSlug
+          ? `/project/${projectSlug}`
+          : "/dashboard"
+        : ownerUsername && projectSlug
+          ? `/${ownerUsername}/${projectSlug}`
+          : "/dashboard";
+
+      return (
+        <AuthLayout>
+          <div className="w-[90vw] sm:w-full sm:max-w-md mx-auto">
+            <Card className="border-muted/40 shadow-2xl backdrop-blur-sm bg-background/80">
+              <CardHeader className="text-center space-y-2">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 bg-primary/10 rounded-full">
+                    <UserPlus className="w-10 h-10 text-primary" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold tracking-tight">
+                  Agent Approval Required
+                </CardTitle>
+                <CardDescription>
+                  Agent request for <span className="font-medium text-foreground">{projectName}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Status: <span className="font-medium text-foreground">Pending</span>
+                </p>
+                <AgentApproveForm
+                  requestId={requestId}
+                  redirectPath={redirectPath}
+                />
+                <Button variant="ghost" asChild className="w-full h-11">
+                  <Link href="/dashboard">Back to Dashboard</Link>
+                </Button>
+              </CardContent>
+              <CardFooter className="justify-center text-xs text-muted-foreground">
+                <Lock className="w-3 h-3 mr-1" />
+                End-to-end encrypted environment
+              </CardFooter>
+            </Card>
+          </div>
+        </AuthLayout>
+      );
+    }
+
     return (
       <AuthLayout>
         <div className="w-[90vw] sm:w-full sm:max-w-md mx-auto">
@@ -97,8 +186,6 @@ export default async function ApprovePage({ params }: ApprovePageProps) {
   }
 
   // Get requester email using admin client
-  const { createAdminClient } = await import("@/lib/supabase/admin");
-  const admin = createAdminClient();
   const { data: requester } = await admin.auth.admin.getUserById(
     request.user_id,
   );
