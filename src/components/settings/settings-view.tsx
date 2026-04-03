@@ -32,7 +32,7 @@ import {
   CornerDownLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-import { triggerHaptic } from "@/lib/haptic";
+import { triggerHaptic } from "@/lib/utils/haptic";
 import { NotificationPreferences } from "@/components/notifications/notification-preferences";
 import {
   AlertDialog,

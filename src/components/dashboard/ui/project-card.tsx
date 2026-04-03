@@ -46,7 +46,7 @@ import {
 import { Project, useEnvaultStore } from "@/lib/stores/store";
 import { toast } from "sonner";
 import { deleteProject as deleteProjectAction } from "@/app/project-actions";
-import { triggerHaptic } from "@/lib/haptic";
+import { triggerHaptic } from "@/lib/utils/haptic";
 
 import { ShareProjectDialog } from "@/components/dialogs/share-project-dialog";
 import { RenameProjectDialog } from "@/components/dialogs/rename-project-dialog";

@@ -31,7 +31,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { triggerHaptic } from "@/lib/haptic";
+import { triggerHaptic } from "@/lib/utils/haptic";
 import { Kbd } from "@/components/ui/kbd";
 import { CornerDownLeft } from "lucide-react";
 

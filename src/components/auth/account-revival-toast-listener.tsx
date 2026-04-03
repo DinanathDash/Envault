@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { triggerHaptic } from "@/lib/haptic";
+import { triggerHaptic } from "@/lib/utils/haptic";
 
 const REVIVAL_TOAST_WINDOW_MS = 15 * 1000;
 

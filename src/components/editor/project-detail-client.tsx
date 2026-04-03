@@ -24,7 +24,7 @@ import { VariableDialog } from "@/components/dialogs/add-variable-dialog";
 import { ImportEnvDialog } from "@/components/dialogs/import-env-dialog";
 import { Project, useEnvaultStore } from "@/lib/stores/store";
 import { createClient } from "@/lib/supabase/client";
-import { triggerHaptic } from "@/lib/haptic";
+import { triggerHaptic } from "@/lib/utils/haptic";
 
 import {
   DropdownMenu,

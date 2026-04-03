@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { setHapticsState } from "@/lib/haptic";
+import { setHapticsState } from "@/lib/utils/haptic";
 
 const HAPTICS_STORAGE_KEY = "envault_haptics_enabled";
 
