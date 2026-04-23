@@ -22,14 +22,25 @@ import { RootRefreshHandler } from "@/components/RootRefreshHandler";
 import { FreeTierNotification } from "@/components/free-tier-notification";
 import { HapticProvider } from "@/components/providers/haptics-provider";
 import Script from "next/script";
-import { JetBrains_Mono, Instrument_Serif, Google_Sans } from "next/font/google";
+import {
+  JetBrains_Mono,
+  Instrument_Serif,
+  Google_Sans,
+} from "next/font/google";
 
 const googleSans = Google_Sans({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   preload: true,
-  fallback: ["system-ui", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+  fallback: [
+    "system-ui",
+    "Segoe UI",
+    "Roboto",
+    "Helvetica",
+    "Arial",
+    "sans-serif",
+  ],
   variable: "--font-google-sans",
 });
 
@@ -47,14 +58,21 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600", "700"],
   display: "swap",
   preload: false,
-  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+  fallback: [
+    "ui-monospace",
+    "SFMono-Regular",
+    "Menlo",
+    "Monaco",
+    "Consolas",
+    "monospace",
+  ],
   variable: "--font-jetbrains-mono",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.envault.tech"),
   title: {
-    default: "Envault - Secure Secrets Management & Environment Variable Vault",
+    default: "Envault | Secure Environment Variable Storage & Secrets Manager",
     template: "%s | Envault",
   },
   description:
@@ -146,7 +164,11 @@ export default async function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-os={os}
-      className={cn(jetbrainsMono.variable, instrumentSerif.variable, googleSans.variable)}
+      className={cn(
+        jetbrainsMono.variable,
+        instrumentSerif.variable,
+        googleSans.variable,
+      )}
     >
       <body className="min-h-screen bg-background font-sans antialiased">
         <SystemStatusBanner show={showBanner} />
