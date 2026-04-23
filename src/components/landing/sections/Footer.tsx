@@ -55,7 +55,7 @@ export function Footer({ user }: FooterProps) {
   return (
     <footer className="border-t bg-background/80 backdrop-blur-sm">
       <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <span className="font-serif font-bold tracking-tight text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
@@ -107,6 +107,15 @@ export function Footer({ user }: FooterProps) {
               </li>
               <li>
                 <FooterLink
+                  href="/features"
+                  className="hover:text-foreground transition-colors"
+                  pathname={pathname}
+                >
+                  Features
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink
                   href="/changelog"
                   className="hover:text-foreground transition-colors"
                   pathname={pathname}
@@ -130,6 +139,29 @@ export function Footer({ user }: FooterProps) {
                   pathname={pathname}
                 >
                   {user ? "Dashboard" : "Login"}
+                </FooterLink>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-4">Compare</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <FooterLink
+                  href="/compare/envault-vs-doppler"
+                  className="hover:text-foreground transition-colors"
+                  pathname={pathname}
+                >
+                  Envault vs Doppler
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink
+                  href="/compare/envault-vs-infisical"
+                  className="hover:text-foreground transition-colors"
+                  pathname={pathname}
+                >
+                  Envault vs Infisical
                 </FooterLink>
               </li>
             </ul>
