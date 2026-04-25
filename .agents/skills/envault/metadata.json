@@ -1,0 +1,5 @@
+{
+  "name": "envault",
+  "description": "Official AI Agent Skill for Envault Secrets Management platform. Enforces strict zero-hardcode rules, Client-Side Encryption, and Human-in-the-Loop (HITL) approval workflows.",
+  "author": "Envault"
+}

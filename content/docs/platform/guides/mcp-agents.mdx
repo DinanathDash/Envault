@@ -78,3 +78,13 @@ When an AI attempts a mutation (for example: creating or updating a secret using
 After setup, ask your AI assistant to run a read operation (for example status/context). Then ask for a mutation and confirm you receive the approval link flow.
 
 This validates both delegated auth and HITL controls in your local environment.
+
+## 4. Install the Agent Skill (Cursor / Cline / Windsurf)
+
+To ensure your AI agent understands Envault's HITL approvals and zero-hardcode rules, install the official Envault Agent Skill into your repository.
+
+Run this at the root of your project:
+```bash
+npx skills add https://github.com/DinanathDash/Envault --skill envault
+```
+This pulls the official instructions into your local `.agents/skills` directory, preventing the agent from trying to bypass client-side encryption or getting stuck in retry loops during HITL approvals.
