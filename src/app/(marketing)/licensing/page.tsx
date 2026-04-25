@@ -227,7 +227,7 @@ export default async function LicensingPage() {
           For written permissions or licensing clarifications, contact us.
         </p>
         <a
-          href="mailto:dashdinanath056@gmail.com"
+          href="mailto:connect@envault.tech?subject=Licensing%20Inquiry&body=Hi%20Envault%20Team%2C%0A%0AI%20have%20a%20question%20about%20licensing%3A%0A%0A"
           className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-none hover:bg-primary/90 transition-colors font-medium"
         >
           Contact Us

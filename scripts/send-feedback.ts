@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { Resend } from "resend";
+import { sendBrevoEmail } from "../src/lib/infra/email";
 import { getEmailHtml } from "../src/lib/infra/email-html";
 
 // load env
@@ -17,11 +17,10 @@ const SENDERS = {
 };
 
 async function main() {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
+  if (!process.env.BREVO_API_KEY) {
+    console.error("BREVO_API_KEY is not set");
     process.exit(1);
   }
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const html = getEmailHtml({
     previewText: "We'd love to hear what you think about Envault",
     heading: "Help us improve Envault",
@@ -53,10 +52,10 @@ async function main() {
 
   console.log(`Sending feedback request to ${recipientEmail}...`);
 
-  const result = await resend.emails.send({
+  const result = await sendBrevoEmail({
     from: SENDERS.default,
     to: recipientEmail,
-    replyTo: "dashdinanath056@gmail.com",
+    replyTo: "connect@envault.tech",
     subject: "We'd love your feedback",
     html,
   });

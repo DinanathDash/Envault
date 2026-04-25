@@ -83,7 +83,7 @@ export function Footer({ user }: FooterProps) {
                 <XLogo className="w-5 h-5" />
               </Link>
               <Link
-                href="mailto:dashdinanath056@gmail.com"
+                href="mailto:connect@envault.tech?subject=Inquiry%20for%20Envault"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail className="w-5 h-5" />

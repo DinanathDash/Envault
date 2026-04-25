@@ -4,50 +4,62 @@ import { resolve } from "path";
 // Extract env from Next.js local files
 dotenv.config({ path: resolve(process.cwd(), ".env.local") });
 
-const recipientEmail = process.argv[2] || "dashdinanath056@gmail.com";
+const args = process.argv.slice(2);
+const testAll = args.includes("--all");
+const recipientEmail = args.find((arg) => !arg.startsWith("--")) || "dashdinanath056@gmail.com";
 
-console.log(`Sending test email to ${recipientEmail}...`);
-console.log(
-  "Using standard Envault HTML email template via sendTestEmail()...",
-);
+console.log(`Sending test email(s) to ${recipientEmail}...`);
+if (testAll) {
+  console.log("Mode: Testing ALL configured sender domains");
+} else {
+  console.log("Mode: Testing single default sender (use --all to test all senders)");
+}
 
 async function main() {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("Error: RESEND_API_KEY is not set in environment variables.");
+  if (!process.env.BREVO_API_KEY) {
+    console.error("Error: BREVO_API_KEY is not set in environment variables.");
     process.exit(1);
   }
 
   // Import dynamically so it evaluates after dotenv.config()
-  const { sendTestEmail } = await import("../src/lib/infra/email");
+  const { sendBrevoEmail, SENDERS } = await import("../src/lib/infra/email");
   const { getEmailHtml } = await import("../src/lib/infra/email-html");
 
-  // Also confirm we can generate HTML successfully
-  try {
-    const html = getEmailHtml({
-      heading: "Template Check",
-      content: "<p>Verifying template generation...</p>",
+  const html = getEmailHtml({
+    heading: "Template Check",
+    content: "<p>Verifying template generation and email delivery capability...</p>",
+  });
+
+  let allSuccess = true;
+
+  const sendersToTest = testAll 
+    ? Object.entries(SENDERS) 
+    : [["default", SENDERS.default]];
+
+  for (const [key, sender] of sendersToTest) {
+    console.log(`\nTesting sender [${key}]: ${sender}`);
+    const result = await sendBrevoEmail({
+      from: sender as string,
+      to: recipientEmail,
+      subject: `Envault Sender Test - [${key}]`,
+      html,
     });
-    console.log(
-      "Template generation successful (length: " + html.length + " chars)",
-    );
-  } catch (e) {
-    console.error("Template generation failed:", e);
+
+    if (result.error) {
+      console.error(`❌ Failed to send from [${key}]`);
+      console.error(result.error);
+      allSuccess = false;
+    } else {
+      console.log(`✅ Success for [${key}]!`);
+      console.log("   Message ID:", result.data?.messageId);
+    }
   }
 
-  const result = await sendTestEmail(recipientEmail);
-  if (result && result.success) {
-    console.log("Email sent successfully!");
-    console.log(
-      "Message ID:",
-      (result.data as { data?: { id?: string } })?.data?.id,
-    );
+  if (allSuccess) {
+    console.log("\n🎉 Tested successfully!");
   } else {
-    console.error("Failed to send email.");
-    console.error(
-      result
-        ? (result.error as Error)?.message || result.error
-        : "Unknown error",
-    );
+    console.log("\n⚠️ Some sender domains failed. Check the logs above.");
+    process.exit(1);
   }
 }
 

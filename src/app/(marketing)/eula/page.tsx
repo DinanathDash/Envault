@@ -209,10 +209,10 @@ export default async function EulaPage() {
         <p className="text-muted-foreground leading-relaxed">
           If you have any questions about this Agreement, please contact us at{" "}
           <a
-            href="mailto:support@envault.tech"
+            href="mailto:connect@envault.tech?subject=EULA%20Inquiry"
             className="text-foreground hover:underline"
           >
-            support@envault.tech
+            connect@envault.tech
           </a>
           .
         </p>

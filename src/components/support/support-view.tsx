@@ -226,7 +226,7 @@ export function SupportView({ inDashboard = false }: SupportViewProps) {
 
         {/* Contact Card */}
         <a
-          href="mailto:dashdinanath056@gmail.com"
+          href="mailto:connect@envault.tech?subject=Support%20Request%20for%20Envault&body=Hi%20Envault%20Support%2C%0A%0AI%20need%20help%20with%3A%0A%0A"
           className="group block h-full"
         >
           <div className="h-full border bg-card text-card-foreground rounded-xl p-6 transition-all hover:shadow-md hover:border-blue-500/50 relative overflow-hidden">
