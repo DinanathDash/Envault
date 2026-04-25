@@ -84,7 +84,7 @@ export function UserAvatar({
   }, [avatar, dicebearUrl]);
 
   return (
-    <Avatar className={cn("h-8 w-8", className)} {...props}>
+    <Avatar className={cn("h-8 w-8 ring-1 ring-black/10 dark:ring-white/10", className)} {...props}>
       <AvatarImage
         src={imageSrc}
         alt={displayName}

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ import { Kbd } from "@/components/ui/kbd";
 
 interface ProjectCardProps {
   project: Project;
+  index?: number;
 }
 
 const ModKey = () => (
@@ -65,7 +67,7 @@ const ModKey = () => (
   </>
 );
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const deleteProject = useEnvaultStore((state) => state.deleteProject);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
@@ -149,15 +151,21 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <>
-      <Link
-        href={
-          project.isShared && project.owner_username && project.role !== "owner"
-            ? `/${project.owner_username}/${project.slug}`
-            : `/project/${project.slug}`
-        }
-        className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl transition-all"
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: index * 0.075, ease: "easeOut" }}
+        className="h-full"
       >
-        <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md group relative overflow-hidden">
+        <Link
+          href={
+            project.isShared && project.owner_username && project.role !== "owner"
+              ? `/${project.owner_username}/${project.slug}`
+              : `/project/${project.slug}`
+          }
+          className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl transition-[box-shadow,transform]"
+        >
+        <Card className="h-full transition-[box-shadow,border-color] hover:shadow-lg hover:border-transparent group relative overflow-hidden">
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-2">
@@ -239,7 +247,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </CardHeader>
           <CardFooter className="absolute bottom-0 w-full bg-muted/20 border-t p-3">
             <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-              <span>{project.secretCount ?? 0} variables</span>
+              <span className="tabular-nums">{project.secretCount ?? 0} variables</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -278,7 +286,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </CardFooter>
           <div className="h-12" /> {/* Spacer for footer */}
         </Card>
-      </Link>
+        </Link>
+      </motion.div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
