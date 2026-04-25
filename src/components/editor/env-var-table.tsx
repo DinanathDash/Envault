@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { ShareSecretModal } from "@/components/dialogs/share-secret-modal";
 import { DateDisplay } from "@/components/ui/date-display";
 import { MaskedDots } from "@/components/ui/masked-dots";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -184,10 +185,16 @@ export function EnvVarTable({
                 </TableCell>
               </TableRow>
             ) : (
-              sortedVariables.map((variable) => {
+              sortedVariables.map((variable, index) => {
                 const isVisible = visibleSecrets[variable.id];
                 return (
-                  <TableRow key={variable.id}>
+                  <motion.tr
+                    key={variable.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.04, ease: "easeOut" }}
+                    className="border-b transition-[color,background-color] data-[state=selected]:bg-muted hover:bg-muted/50"
+                  >
                     <TableCell className="font-mono font-medium">
                       <div className="flex items-center space-x-2">
                         <span>{variable.key}</span>
@@ -433,7 +440,7 @@ export function EnvVarTable({
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 );
               })
             )}
@@ -462,11 +469,14 @@ export function EnvVarTable({
             No variables added yet.
           </div>
         ) : (
-          sortedVariables.map((variable) => {
+          sortedVariables.map((variable, index) => {
             const isVisible = visibleSecrets[variable.id];
             return (
-              <div
+              <motion.div
                 key={variable.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.04, ease: "easeOut" }}
                 className="bg-card text-card-foreground p-4 rounded-xl border shadow-sm space-y-3"
               >
                 <div className="flex justify-between items-start">
@@ -579,7 +589,7 @@ export function EnvVarTable({
                       );
                     })()}
                 </div>
-              </div>
+              </motion.div>
             );
           })
         )}
