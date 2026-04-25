@@ -14,6 +14,16 @@ All notable changes to Envault are documented here.
 
 > Authors: Dinanath Dash (DinanathDash)
 
+### Infrastructure
+
+- **Email Provider Migration (Resend -> Brevo):** Replaced the `resend` SDK with a native `fetch`-based wrapper using the Brevo SMTP API. Updated all 17 email functions and removed the `resend` package.
+- **Multi-Sender Test Script:** Added `--all` flag to `send-test-email.ts` and a `test:email:all` npm script to test all configured sender domains at once.
+
+### Contact & Branding
+
+- **Unified Contact Email:** Updated all public-facing contact links (legal pages, footer, support modal, `SECURITY.md`, feedback script) to `connect@envault.tech`.
+- **Pre-Filled `mailto:` Templates:** Contact links now open the user's mail client with a context-specific pre-filled subject and body.
+
 ### Features & SEO
 
 - **Marketing Pages & SEO:** Added new features page, comparison routes, and updated SEO sitemap while cleaning up project documentation.
@@ -30,6 +40,8 @@ All notable changes to Envault are documented here.
 
 ### Documentation
 
+- **Brevo Migration Docs:** Updated `configuration.mdx`, `initial-setup.mdx`, `production-deployment.mdx`, and `environment-variables.mdx` to reflect the Resend -> Brevo migration and new `BREVO_API_KEY` variable.
+- **License Scope:** Added a Section 6 to `LICENSE.txt` clarifying that `mcp-server/` and `src/lib/sdk/` are distributed under the MIT License.
 - **Changelog Structure:** Restructured changelog categories for better readability.
 
 ---

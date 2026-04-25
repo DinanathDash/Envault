@@ -50,17 +50,17 @@ Once created, populate your `.env.local` or production environment with the gene
 
 ---
 
-## Setting up Notifications (Resend & Cron)
+## Setting up Notifications (Brevo & Cron)
 
-For authorized private deployments, the platform requires an active **Resend** account to send emails (like invites and security alerts).
+For authorized private deployments, the platform requires an active **Brevo** account to send emails (like invites and security alerts).
 
-### 1. Resend Configuration
+### 1. Brevo Configuration
 
-Sign up at [resend.com](https://resend.com) and generate an API key. Add it to your `.env.local` or production environment:
+Sign up at [brevo.com](https://brevo.com) and generate an API key. Add it to your `.env.local` or production environment:
 
 | Variable         | Description         |
 | :--------------- | :------------------ |
-| `RESEND_API_KEY` | Your Resend API Key |
+| `BREVO_API_KEY` | Your Brevo API Key |
 
 ### 2. Cron Configuration for Digests
 
@@ -75,4 +75,4 @@ Generate a strong random string (e.g. `openssl rand -hex 32`) and set it as:
 Once deployed, set up a cron job (via GitHub Actions, Vercel Cron, or a Linux `crontab`) that calls:
 `GET https://your-domain.com/api/cron/digest`
 using the header: `Authorization: Bearer <CRON_SECRET>`.
-This triggers Envault to process the notification queue and send the formatted emails out via Resend.
+This triggers Envault to process the notification queue and send the formatted emails out via Brevo.
