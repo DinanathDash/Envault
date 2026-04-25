@@ -565,10 +565,10 @@ export default async function TermsPage() {
         <p className="text-muted-foreground leading-relaxed">
           If you have any questions about these Terms, please contact us at{" "}
           <a
-            href="mailto:dashdinanath056@gmail.com"
+            href="mailto:connect@envault.tech?subject=Terms%20of%20Service%20Inquiry"
             className="font-mono text-sm text-foreground hover:text-primary transition-colors underline underline-offset-4"
           >
-            dashdinanath056@gmail.com
+            connect@envault.tech
           </a>
           .
         </p>

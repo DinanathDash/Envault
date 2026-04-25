@@ -572,10 +572,10 @@ export default async function PrivacyPage() {
           If you have any questions about this privacy policy, please contact us
           at{" "}
           <a
-            href="mailto:dashdinanath056@gmail.com"
+            href="mailto:connect@envault.tech?subject=Privacy%20Policy%20Inquiry"
             className="font-mono text-sm text-foreground hover:text-primary transition-colors underline underline-offset-4"
           >
-            dashdinanath056@gmail.com
+            connect@envault.tech
           </a>
           .
         </p>

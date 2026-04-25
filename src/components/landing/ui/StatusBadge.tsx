@@ -34,8 +34,7 @@ export function StatusBadge() {
 
   return (
     <Link
-      href="https://status.envault.dev"
-      target="_blank"
+      href="/status"
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold tracking-tight transition-all duration-300 border ${cfg.border} ${cfg.bg} ${cfg.color} hover:scale-105`}
     >
       <Icon className="size-4 shrink-0 animate-pulse" />

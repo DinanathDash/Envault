@@ -1,15 +1,80 @@
-import { Resend } from "resend";
 import { getEmailHtml } from "./email-html";
 import { Notification } from "../types/notifications";
 import { formatEnvironmentLabel } from "../utils/environment-label";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Helper to extract name and email from "Name <email@domain.com>" or just "email@domain.com"
+function parseSenderString(sender: string) {
+  const match = sender.match(/(.*?)<(.*?)>/);
+  if (match) {
+    return { name: match[1].trim(), email: match[2].trim() };
+  }
+  return { email: sender.trim() };
+}
+
+interface SendEmailOptions {
+  from: string;
+  to: string | string[];
+  subject: string;
+  html: string;
+  replyTo?: string;
+}
+
+export async function sendBrevoEmail(options: SendEmailOptions) {
+  const { from, to, subject, html, replyTo } = options;
+  const apiKey = process.env.BREVO_API_KEY;
+
+  if (!apiKey) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Skipping email in DEV (No BREVO_API_KEY).");
+      return { data: null, error: null };
+    }
+    return { data: null, error: new Error("Missing BREVO_API_KEY") };
+  }
+
+  const senderObj = parseSenderString(from);
+
+  const toArray = Array.isArray(to) ? to : [to];
+  const toObjects = toArray.map(t => parseSenderString(t));
+
+  const payload: Record<string, unknown> = {
+    sender: senderObj,
+    to: toObjects,
+    subject,
+    htmlContent: html,
+  };
+
+  if (replyTo) {
+    payload.replyTo = parseSenderString(replyTo);
+  }
+
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": apiKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { data: null, error: new Error(`Brevo API error: ${response.status} ${errorText}`) };
+    }
+
+    const data = await response.json();
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
 
 // Helper to determine sender email
 const SENDER_DOMAIN = process.env.EMAIL_DOMAIN || "mail.envault.tech";
 // Each category uses a distinct sub-address so users can filter their inbox.
 // All sub-addresses are on the same verified domain so deliverability is fine.
-const SENDERS = {
+export const SENDERS = {
   default: `Envault <team@${SENDER_DOMAIN}>`,
   notifications: `Envault <notifications@${SENDER_DOMAIN}>`,
   invites: `Envault Access <access@${SENDER_DOMAIN}>`,
@@ -62,14 +127,18 @@ export async function sendTestEmail(to: string) {
       logoUrl: LOGO_URL,
     });
 
-    const result = await resend.emails.send({
+    const result = await sendBrevoEmail({
       from: SENDERS.default,
       to,
       subject: "Envault - Test Email",
       html,
     });
 
-    return { success: true, data: result };
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error("Failed to send test email:", error);
     return { success: false, error };
@@ -82,7 +151,7 @@ export async function sendAccountScheduledDeletionEmail(
   deletionDueAtIso: string,
   timezone?: string | null,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(
       "Skipping account deletion schedule email in DEV (No API Key).",
     );
@@ -120,7 +189,7 @@ export async function sendAccountScheduledDeletionEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.security,
       to,
       subject: "Your Envault account is scheduled for deletion",
@@ -154,7 +223,7 @@ export async function sendAccessRequestEmail(
   requestedEnvironment?: string,
   ownerId?: string, // Added to check preferences
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping Access Request email in DEV (No API Key).");
     return;
   }
@@ -197,7 +266,7 @@ export async function sendAccessRequestEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       replyTo: requesterEmail,
@@ -221,7 +290,7 @@ export async function sendNewDeviceEmail(
   deviceName: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping New Device email in DEV (No API Key).");
     return;
   }
@@ -256,7 +325,7 @@ export async function sendNewDeviceEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       subject: "New Device Access - Envault",
@@ -279,7 +348,7 @@ export async function sendInviteEmail(
   token: string,
   senderEmail?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.warn(
       "Skipping email in DEV (No API Key). Invite Link:",
       `${APP_URL}/join/${token}`,
@@ -324,7 +393,7 @@ export async function sendInviteEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.invites,
       to,
       replyTo: senderEmail || to,
@@ -349,7 +418,7 @@ export async function sendAccessGrantedEmail(
   allowedEnvironments?: string[] | null,
   userId?: string, // Added to check preferences
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping Access Granted email in DEV (No API Key).");
     return;
   }
@@ -391,7 +460,7 @@ export async function sendAccessGrantedEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       subject: `Access Granted: ${projectName}`,
@@ -410,7 +479,7 @@ export async function sendAccessDeniedEmail(
   projectName: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping Access Denied email in DEV (No API Key).");
     return;
   }
@@ -440,7 +509,7 @@ export async function sendAccessDeniedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       subject: `Access Request Denied: ${projectName}`,
@@ -460,7 +529,7 @@ export async function sendAccessUpdatedEmail(
   newAllowedEnvironments?: string[] | null,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping Access Updated email in DEV (No API Key).");
     return;
   }
@@ -504,7 +573,7 @@ export async function sendAccessUpdatedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       subject: `Access Updated: ${projectName}`,
@@ -521,7 +590,7 @@ export async function sendAccessRevokedEmail(
   removedBy: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping Access Revoked email in DEV (No API Key).");
     return;
   }
@@ -551,7 +620,7 @@ export async function sendAccessRevokedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.notifications,
       to,
       subject: `Access Revoked: ${projectName}`,
@@ -570,7 +639,7 @@ export async function sendDigestEmail(
   notifications: Notification[],
   frequency: "daily" | "weekly",
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(
       `Skipping Digest email in DEV (No API Key). To: ${to}, Count: ${notifications.length}`,
     );
@@ -628,7 +697,7 @@ export async function sendDigestEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.digest,
       to,
       subject: `Envault - ${period} Digest`,
@@ -654,7 +723,7 @@ export async function sendSecurityAlertEmail(
   userId?: string,
   actionUrl?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(`Skipping Security Alert email in DEV: ${title}`);
     return;
   }
@@ -686,7 +755,7 @@ export async function sendSecurityAlertEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.security,
       to,
       subject: `Security Alert: ${title} - Envault`,
@@ -717,7 +786,7 @@ export async function sendProjectActivityEmail(
   userId?: string,
   projectSlug?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(`Skipping Project Activity email in DEV: ${title}`);
     return;
   }
@@ -752,7 +821,7 @@ export async function sendProjectActivityEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.activity,
       to,
       subject: `${title} - ${projectName} on Envault`,
@@ -773,7 +842,7 @@ export async function sendOwnershipTransferRequestedEmail(
   requestId: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping ownership transfer request email in DEV.");
     return;
   }
@@ -803,7 +872,7 @@ export async function sendOwnershipTransferRequestedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.activity,
       to,
       subject: `Ownership Transfer Request: ${projectName}`,
@@ -820,7 +889,7 @@ export async function sendOwnershipTransferAcceptedEmail(
   acceptedBy: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping ownership transfer accepted email in DEV.");
     return;
   }
@@ -850,7 +919,7 @@ export async function sendOwnershipTransferAcceptedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.activity,
       to,
       subject: `Ownership Transfer Accepted: ${projectName}`,
@@ -867,7 +936,7 @@ export async function sendOwnershipTransferRejectedEmail(
   rejectedBy: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log("Skipping ownership transfer rejected email in DEV.");
     return;
   }
@@ -897,7 +966,7 @@ export async function sendOwnershipTransferRejectedEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.activity,
       to,
       subject: `Ownership Transfer Rejected: ${projectName}`,
@@ -926,7 +995,7 @@ export async function sendCliActivityEmail(
   userId?: string,
   projectSlug?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(`Skipping CLI Activity email in DEV (${action})`);
     return;
   }
@@ -977,7 +1046,7 @@ export async function sendCliActivityEmail(
       logoUrl: LOGO_URL,
     });
 
-    const { error } = await resend.emails.send({
+    const { error } = await sendBrevoEmail({
       from: SENDERS.cli,
       to,
       subject: `CLI ${
@@ -1007,7 +1076,7 @@ export async function sendSystemUpdateEmail(
   message: string,
   userId?: string,
 ) {
-  if (process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY) {
+  if (process.env.NODE_ENV === "development" && !process.env.BREVO_API_KEY) {
     console.log(`Skipping System Update email in DEV: ${title}`);
     return;
   }
@@ -1040,7 +1109,7 @@ export async function sendSystemUpdateEmail(
       logoUrl: LOGO_URL,
     });
 
-    await resend.emails.send({
+    await sendBrevoEmail({
       from: SENDERS.system,
       to,
       subject: `${title} - Envault`,
