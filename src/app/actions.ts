@@ -38,7 +38,12 @@ function scheduleMcpTokenSecuritySignals(params: {
   after(async () => {
     const tasks: Promise<unknown>[] = [];
 
-    if (params.type === "created" && params.tokenName && params.ttlDays && params.expiresAt) {
+    if (
+      params.type === "created" &&
+      params.tokenName &&
+      params.ttlDays &&
+      params.expiresAt
+    ) {
       tasks.push(
         createMcpTokenCreatedNotification(
           params.userId,
@@ -97,6 +102,25 @@ function scheduleMcpTokenSecuritySignals(params: {
 }
 
 function resolveAuthBaseUrl(headersList: Headers): string {
+  // In development, always derive from the actual request origin so that
+  // confirmation emails link back to localhost instead of the production URL.
+  if (process.env.NODE_ENV !== "production") {
+    const origin = headersList.get("origin")?.trim();
+    if (origin) return origin.replace(/\/+$/, "");
+
+    const forwardedHost = headersList.get("x-forwarded-host")?.trim();
+    if (forwardedHost) {
+      const proto = headersList.get("x-forwarded-proto")?.trim() || "https";
+      return `${proto}://${forwardedHost}`;
+    }
+
+    const host = headersList.get("host")?.trim();
+    if (host) return `https://${host}`;
+
+    return "https://envault.localhost:1355";
+  }
+
+  // Production: prefer the explicit env var, then fall back to headers.
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (envUrl) return envUrl.replace(/\/+$/, "");
 
@@ -112,7 +136,6 @@ function resolveAuthBaseUrl(headersList: Headers): string {
   const host = headersList.get("host")?.trim();
   if (host) return `https://${host}`;
 
-  // Final fallback to avoid malformed redirectTo like "null/auth/callback".
   return "https://envault.localhost:1355";
 }
 
@@ -211,7 +234,13 @@ export async function signInWithPassword(formData: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    if (error.message.toLowerCase().includes("email not confirmed")) {
+      return {
+        error:
+          "Please verify your email before signing in. Check your inbox for a confirmation link.",
+      };
+    }
+    return { error: "Invalid email or password. If you haven't created an account yet, please sign up." };
   }
 
   if (next && next.startsWith("/")) {
@@ -239,7 +268,7 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/auth/confirm`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 
@@ -269,7 +298,9 @@ export async function deleteAccountAction(userTimezone?: string | null) {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const adminSupabase = createAdminClient();
   const { data: scheduledAtData, error: schedulingError } =
-    await adminSupabase.rpc("schedule_account_deletion", { p_user_id: user.id });
+    await adminSupabase.rpc("schedule_account_deletion", {
+      p_user_id: user.id,
+    });
 
   if (schedulingError) {
     console.error("Error scheduling account deletion:", schedulingError);
@@ -292,9 +323,8 @@ export async function deleteAccountAction(userTimezone?: string | null) {
   if (userEmail) {
     after(async () => {
       try {
-        const { sendAccountScheduledDeletionEmail } = await import(
-          "@/lib/infra/email"
-        );
+        const { sendAccountScheduledDeletionEmail } =
+          await import("@/lib/infra/email");
         await sendAccountScheduledDeletionEmail(
           userEmail,
           scheduledAtIso,
@@ -448,7 +478,9 @@ export async function getMcpWebTokenStatus() {
     return { token: null };
   }
 
-  const expiresAt = tokenData.expires_at ? new Date(tokenData.expires_at) : null;
+  const expiresAt = tokenData.expires_at
+    ? new Date(tokenData.expires_at)
+    : null;
   if (expiresAt && expiresAt < new Date()) {
     const meta = (tokenData.metadata || {}) as {
       token_name?: string;
@@ -504,9 +536,11 @@ export async function getMcpWebTokenStatus() {
           ? meta.token_name.trim()
           : "MCP Token",
       masked:
-        typeof meta.token_masked === "string" && meta.token_masked.trim().length > 0
+        typeof meta.token_masked === "string" &&
+        meta.token_masked.trim().length > 0
           ? meta.token_masked.trim()
-          : typeof meta.token_suffix === "string" && meta.token_suffix.trim().length > 0
+          : typeof meta.token_suffix === "string" &&
+              meta.token_suffix.trim().length > 0
             ? `envault_at_...${meta.token_suffix.trim()}`
             : "envault_at_***",
       ttlDays: typeof meta.ttl_days === "number" ? meta.ttl_days : null,
@@ -516,7 +550,10 @@ export async function getMcpWebTokenStatus() {
   };
 }
 
-export async function generateMcpWebToken(input: { tokenName: string; ttlDays: number }) {
+export async function generateMcpWebToken(input: {
+  tokenName: string;
+  ttlDays: number;
+}) {
   const supabase = await createClient();
   const {
     data: { user },

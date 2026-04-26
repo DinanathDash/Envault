@@ -448,7 +448,10 @@ function getActionBadgeClass(action: string): string {
   if (action === "transfer.rejected") {
     return "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300";
   }
-  if (action === "github.account_connected" || action === "github.repo_linked") {
+  if (
+    action === "github.account_connected" ||
+    action === "github.repo_linked"
+  ) {
     return "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
   }
   if (
@@ -693,7 +696,9 @@ function getNonDiffContextSummary(
       ? String(metadata.environment)
       : null;
     const mutationCount =
-      typeof metadata?.mutation_count === "number" ? metadata.mutation_count : null;
+      typeof metadata?.mutation_count === "number"
+        ? metadata.mutation_count
+        : null;
     const envPart = environment ? ` in ${environment}` : "";
 
     if (mutationCount !== null) {

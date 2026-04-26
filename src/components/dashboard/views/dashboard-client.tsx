@@ -199,7 +199,9 @@ export function DashboardClient({
     <main className="container mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-balance">Projects</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-balance">
+            Projects
+          </h1>
           <p className="text-muted-foreground">
             Manage your environment variables securely.
           </p>

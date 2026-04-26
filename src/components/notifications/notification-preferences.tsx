@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -101,11 +101,7 @@ export function NotificationPreferences() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchPreferences();
-  }, []);
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = React.useCallback(async () => {
     let retries = 3;
     while (retries > 0) {
       try {
@@ -145,7 +141,11 @@ export function NotificationPreferences() {
       }
     }
     setIsLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   const savePreferences = async () => {
     setIsSaving(true);

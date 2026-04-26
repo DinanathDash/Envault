@@ -75,7 +75,32 @@ export function AuthForm() {
   const [isPasskeyLoading, setIsPasskeyLoading] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("login");
   const [lastUsedProvider, setLastUsedProvider] =
-    React.useState<AuthProvider | null>(null);
+    React.useState<AuthProvider | null>(() => {
+      // Lazy initializer runs once on the client — no effect needed.
+      try {
+        const cookieValue = toAuthProvider(
+          document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(`${LAST_USED_AUTH_PROVIDER_COOKIE}=`))
+            ?.split("=")[1],
+        );
+        const savedFromStorage = toAuthProvider(
+          window.localStorage.getItem(LAST_USED_AUTH_PROVIDER_KEY),
+        );
+        // OAuth callback writes cookie after successful auth. Prefer it over stale local storage.
+        const savedProvider = cookieValue || savedFromStorage;
+        if (savedProvider && savedFromStorage !== savedProvider) {
+          window.localStorage.setItem(
+            LAST_USED_AUTH_PROVIDER_KEY,
+            savedProvider,
+          );
+        }
+        return savedProvider ?? null;
+      } catch {
+        // Ignore storage access errors (private mode, blocked storage, etc).
+        return null;
+      }
+    });
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -115,34 +140,6 @@ export function AuthForm() {
       }, 100);
     }
   }, [searchParams, router]);
-
-  React.useEffect(() => {
-    try {
-      const savedFromStorage = toAuthProvider(
-        window.localStorage.getItem(LAST_USED_AUTH_PROVIDER_KEY),
-      );
-      const cookieValue = toAuthProvider(
-        document.cookie
-          .split("; ")
-          .find((row) => row.startsWith(`${LAST_USED_AUTH_PROVIDER_COOKIE}=`))
-          ?.split("=")[1],
-      );
-
-      // OAuth callback writes cookie after successful auth. Prefer it over stale local storage.
-      const savedProvider = cookieValue || savedFromStorage;
-      if (savedProvider) {
-        setLastUsedProvider(savedProvider);
-        if (savedFromStorage !== savedProvider) {
-          window.localStorage.setItem(
-            LAST_USED_AUTH_PROVIDER_KEY,
-            savedProvider,
-          );
-        }
-      }
-    } catch {
-      // Ignore storage access errors (private mode, blocked storage, etc).
-    }
-  }, []);
 
   const rememberLastUsedProvider = React.useCallback(
     (provider: AuthProvider) => {
