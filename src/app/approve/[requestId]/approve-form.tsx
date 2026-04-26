@@ -52,11 +52,6 @@ export function ApproveForm({
     string[]
   >(() => getInitialSelectedEnvironments());
 
-  React.useEffect(() => {
-    setRole(existingRole);
-    setSelectedEnvironments(getInitialSelectedEnvironments());
-  }, [existingRole, getInitialSelectedEnvironments]);
-
   const handleApprove = async () => {
     if (environments.length > 0 && selectedEnvironments.length === 0) {
       toast.error("Select at least one environment before approving access.");

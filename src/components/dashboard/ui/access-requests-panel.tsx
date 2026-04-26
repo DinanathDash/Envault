@@ -116,7 +116,6 @@ export function AccessRequestsPanel() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line
     fetchRequests(false);
   }, [fetchRequests]);
 

@@ -14,7 +14,16 @@ import { toast } from "sonner";
 export function AnimatedTerminal() {
   const [copied, setCopied] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
-  const [authCode, setAuthCode] = useState("HZ4E-QSRZ");
+  const [authCode] = useState(() => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < 4; i++)
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += "-";
+    for (let i = 0; i < 4; i++)
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  });
   const [typedCommand, setTypedCommand] = useState("");
   const [step, setStep] = useState(0);
 
@@ -27,15 +36,6 @@ export function AnimatedTerminal() {
     const interval = setInterval(() => {
       setCursorVisible((v) => !v);
     }, 500);
-
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code = "";
-    for (let i = 0; i < 4; i++)
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    code += "-";
-    for (let i = 0; i < 4; i++)
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    setAuthCode(code);
 
     return () => clearInterval(interval);
   }, []);

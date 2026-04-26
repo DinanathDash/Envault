@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -60,7 +60,7 @@ export function RenameProjectDialog({
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RenameValues>({
     resolver: zodResolver(renameSchema),
@@ -70,7 +70,7 @@ export function RenameProjectDialog({
   });
 
   const [expectedSlug, setExpectedSlug] = React.useState(project.slug);
-  const watchName = watch("name");
+  const watchName = useWatch({ control, name: "name" }) || "";
 
   React.useEffect(() => {
     if (watchName) {

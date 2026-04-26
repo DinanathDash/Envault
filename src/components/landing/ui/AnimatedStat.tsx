@@ -14,7 +14,6 @@ export function AnimatedStat({ value }: AnimatedStatProps) {
 
   useEffect(() => {
     if (inView && !isInView) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsInView(true);
     }
   }, [inView, isInView]);

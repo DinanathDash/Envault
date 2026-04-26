@@ -80,7 +80,6 @@ export default function SystemStatusView({
   useEffect(() => {
     let isMounted = true;
     if (isMounted) {
-      // eslint-disable-next-line
       setMounted(true);
     }
     // Initial backwards compatibility migration hook from hash to param

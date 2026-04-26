@@ -422,6 +422,7 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
   const isProgrammaticScrollRef = useRef(false);
   const scrollEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const skipCometVisibilityRef = useRef(false);
+  const [showComet, setShowComet] = useState(false);
 
   useEffect(() => {
     isScrollingRef.current = isScrolling;
@@ -473,16 +474,6 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
     () => getPaginationItems(currentPage, totalPages),
     [currentPage, totalPages],
   );
-
-  useEffect(() => {
-    setActiveSlug(currentEntries[0]?.slug ?? "");
-  }, [currentEntries]);
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
 
   const changePage = (page: number) => {
     const nextPage = Math.min(Math.max(page, 1), totalPages);
@@ -537,7 +528,6 @@ export function ChangelogTimeline({ entries }: TimelineProps) {
   };
 
   // Comet state and physics
-  const [showComet, setShowComet] = useState(false);
   const [containerTop, setContainerTop] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
 
