@@ -48,8 +48,8 @@ import { createClient } from "@/lib/supabase/client";
 import { deleteAccountAction } from "@/app/actions";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { Kbd } from "@/components/ui/kbd";
-import { AppHeader } from "@/components/dashboard/ui/app-header";
 import { inferUsernameFromAuth } from "@/lib/utils/username";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 const ModKey = () => (
   <>
@@ -296,12 +296,10 @@ export default function SettingsView() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <AppHeader title="Settings" backTo="/dashboard" hideSearch />
-
+    <AuthenticatedShell title="Settings" backTo="/dashboard" hideSearch>
       <main className="container mx-auto py-8 px-4">
         <div className="flex flex-col md:flex-row gap-8 relative">
-          <aside className="w-full md:w-64 space-y-2 md:sticky md:top-28 md:h-fit">
+          <aside className="w-full md:w-64 space-y-2 md:sticky md:h-fit">
             <nav className="flex md:flex-col space-x-2 md:space-x-0 md:space-y-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <Button
                 variant={activeTab === "profile" ? "secondary" : "ghost"}
@@ -501,7 +499,8 @@ export default function SettingsView() {
                       <div className="space-y-0.5">
                         <Label htmlFor="haptics-toggle">Haptic feedback</Label>
                         <p className="text-sm text-muted-foreground">
-                          Receive tactile feedback for important actions on supported devices.
+                          Receive tactile feedback for important actions on
+                          supported devices.
                         </p>
                       </div>
                       <Switch
@@ -689,6 +688,6 @@ export default function SettingsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AuthenticatedShell>
   );
 }

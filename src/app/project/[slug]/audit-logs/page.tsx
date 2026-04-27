@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { AuditLogsView } from "@/components/dashboard/views/audit-logs-view";
-import { AppHeader } from "@/components/dashboard/ui/app-header";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -57,13 +57,11 @@ export default async function AuditLogsPage({ params }: PageProps) {
   const project = accessible.project;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <AppHeader
-        title={`${project.name} - Audit Logs`}
-        backTo={`/project/${slug}`}
-        hideSearch
-      />
-
+    <AuthenticatedShell
+      title={`${project.name} - Audit Logs`}
+      backTo={`/project/${slug}`}
+      hideSearch
+    >
       <main className="container mx-auto py-8 flex-1 px-4">
         <h2 className="text-2xl font-semibold tracking-tight mb-2">
           Project Audit Logs
@@ -78,6 +76,6 @@ export default async function AuditLogsPage({ params }: PageProps) {
           <AuditLogsView projectId={project.id} />
         </div>
       </main>
-    </div>
+    </AuthenticatedShell>
   );
 }

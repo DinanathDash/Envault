@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
-import { getModifierKey } from "@/lib/utils/utils";
+import { cn, getModifierKey } from "@/lib/utils/utils";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 import { useEnvaultStore } from "@/lib/stores/store";
@@ -36,6 +36,8 @@ interface AppHeaderProps {
   backTo?: string;
   actions?: React.ReactNode;
   hideSearch?: boolean;
+  className?: string;
+  contentClassName?: string;
 }
 
 export function AppHeader({
@@ -43,6 +45,8 @@ export function AppHeader({
   backTo,
   actions,
   hideSearch = false,
+  className,
+  contentClassName,
 }: AppHeaderProps) {
   const { user, logout } = useEnvaultStore();
   const router = useRouter();
@@ -63,16 +67,29 @@ export function AppHeader({
     await signOut();
   };
 
+  const iconHoverClass =
+    "rounded-md hover:bg-background/95 dark:hover:bg-accent/80 dark:hover:text-accent-foreground";
+
   return (
-    <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
-      <div className="container mx-auto py-4 px-4 flex items-center justify-between">
+    <header
+      className={cn(
+        "sticky top-0 z-50 bg-background/95 backdrop-blur",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "container mx-auto flex items-center justify-between px-4 py-3 sm:py-3.5 md:py-4",
+          contentClassName,
+        )}
+      >
         <div className="flex items-center gap-2">
           {backTo ? (
             <Button
               variant="ghost"
               size="icon"
               onClick={handleBack}
-              className="[&_svg]:!w-5 [&_svg]:!h-5"
+              className={cn("[&_svg]:!w-5 [&_svg]:!h-5", iconHoverClass)}
             >
               <ArrowLeft />
             </Button>
@@ -101,7 +118,7 @@ export function AppHeader({
             <Button
               variant="outline"
               size="sm"
-              className="text-muted-foreground hidden md:flex items-center gap-2 h-9"
+              className="text-muted-foreground hidden md:flex items-center gap-2 h-9 border-border/80 bg-background/70 hover:bg-background hover:border-border"
               onClick={() => {
                 document.dispatchEvent(new CustomEvent("open-global-search"));
               }}
@@ -117,12 +134,21 @@ export function AppHeader({
 
           {actions}
 
-          <AnimatedThemeToggler />
-          <NotificationDropdown />
+          <AnimatedThemeToggler
+            className={cn(
+              "h-10 w-10 inline-flex items-center justify-center",
+              iconHoverClass,
+            )}
+          />
+          <NotificationDropdown bellClassName={iconHoverClass} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn("rounded-full", iconHoverClass)}
+              >
                 <UserAvatar
                   user={{
                     email: user?.email,

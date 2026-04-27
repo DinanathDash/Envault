@@ -23,10 +23,15 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { pushWithTransition } from "@/lib/utils/view-transition-navigation";
 
-export function NotificationDropdown() {
+interface NotificationDropdownProps {
+  bellClassName?: string;
+}
+
+export function NotificationDropdown({
+  bellClassName,
+}: NotificationDropdownProps) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
   const { notifications, isLoading, markAllAsRead, deleteAllRead } =
     useNotificationStore();
   const router = useRouter();
@@ -60,7 +65,6 @@ export function NotificationDropdown() {
   // Listen for global shortcut event
   useEffect(() => {
     const handleToggle = () => {
-      setShowTooltip(false);
       setOpen((prev) => !prev);
     };
     document.addEventListener("toggle-notifications", handleToggle);
@@ -70,7 +74,6 @@ export function NotificationDropdown() {
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    setShowTooltip(false);
   };
 
   useHotkeys(
@@ -105,25 +108,21 @@ export function NotificationDropdown() {
   );
 
   if (!mounted) {
-    return <NotificationBell />;
+    return <NotificationBell className={bellClassName} />;
   }
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      <Tooltip open={showTooltip && !open}>
+      <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <NotificationBell
+              className={bellClassName}
               data-notification-trigger
-              onPointerEnter={() => setShowTooltip(true)}
-              onPointerLeave={() => setShowTooltip(false)}
-              onFocus={() => setShowTooltip(false)}
-              onBlur={() => setShowTooltip(false)}
-              onClick={() => setShowTooltip(false)}
             />
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom" align="center" sideOffset={1}>
           <p className="flex items-center gap-2">
             Notifications{" "}
             <span className="hidden md:flex items-center gap-1">
@@ -200,10 +199,7 @@ export function NotificationDropdown() {
         {/* Footer */}
         {notifications.length > 5 && (
           <div className="border-t p-2">
-            <Link
-              href="/notifications"
-              onClick={() => setOpen(false)}
-            >
+            <Link href="/notifications" onClick={() => setOpen(false)}>
               <Button variant="ghost" className="w-full text-sm">
                 View all notifications
                 <Kbd variant="ghost" size="xs" className="ml-2">

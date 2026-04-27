@@ -67,7 +67,6 @@ import { GitHubIntegrationDialog } from "@/components/dialogs/github-integration
 import { VercelIntegrationDialog } from "@/components/dialogs/vercel-integration-dialog";
 import { TransferOwnershipDialog } from "@/components/dialogs/transfer-ownership-dialog";
 import { ServiceTokenDialog } from "@/components/dialogs/service-token-dialog";
-import { AppHeader } from "@/components/dashboard/ui/app-header";
 import {
   Edit3,
   Github,
@@ -78,6 +77,7 @@ import {
 } from "lucide-react";
 import { formatEnvironmentLabel } from "@/lib/utils/environment-label";
 import { getModifierKey } from "@/lib/utils/utils";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 import {
   Dialog,
   DialogContent,
@@ -553,14 +553,12 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
     ) : null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader
-        title={project.name}
-        backTo="/dashboard"
-        actions={projectActions}
-        hideSearch
-      />
-
+    <AuthenticatedShell
+      title={project.name}
+      backTo="/dashboard"
+      actions={projectActions}
+      hideSearch
+    >
       <main className="container mx-auto py-8 px-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 sm:gap-0">
           <div>
@@ -894,6 +892,6 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AuthenticatedShell>
   );
 }

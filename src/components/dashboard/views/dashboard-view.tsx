@@ -1,6 +1,6 @@
-import { AppHeader } from "@/components/dashboard/ui/app-header";
 import { DashboardClient, ProjectSkeletonGrid } from "./dashboard-client";
 import { getProjects } from "@/app/project-actions";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 export default async function DashboardLogic() {
   const result = await getProjects();
@@ -8,10 +8,9 @@ export default async function DashboardLogic() {
   const projects = (result.data as any) || [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
+    <AuthenticatedShell>
       <DashboardClient initialProjects={projects} />
-    </div>
+    </AuthenticatedShell>
   );
 }
 
