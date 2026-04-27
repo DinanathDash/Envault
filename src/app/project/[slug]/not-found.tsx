@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { FolderX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AppHeader } from "@/components/dashboard/ui/app-header";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 export default function ProjectNotFound() {
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader title="Project Not Found" backTo="/dashboard" hideSearch />
-
+    <AuthenticatedShell
+      title="Project Not Found"
+      backTo="/dashboard"
+      hideSearch
+    >
       <main className="container mx-auto py-16 px-4">
         <div className="flex flex-col items-center justify-center text-foreground text-center p-4">
           <div className="bg-muted p-6 rounded-full mb-6">
@@ -21,12 +23,10 @@ export default function ProjectNotFound() {
             you lack access to view it.
           </p>
           <Button asChild>
-            <Link href="/dashboard">
-              Return to Dashboard
-            </Link>
+            <Link href="/dashboard">Return to Dashboard</Link>
           </Button>
         </div>
       </main>
-    </div>
+    </AuthenticatedShell>
   );
 }

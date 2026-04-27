@@ -48,7 +48,8 @@ function getThemeTransitionStrategy(): ThemeTransitionStrategy {
   }
 
   const supportsMask =
-    CSS.supports("mask-size", "1px") || CSS.supports("-webkit-mask-size", "1px");
+    CSS.supports("mask-size", "1px") ||
+    CSS.supports("-webkit-mask-size", "1px");
   if (!supportsMask) {
     cachedStrategy = { useAdvanced: false };
     return cachedStrategy;
@@ -57,8 +58,7 @@ function getThemeTransitionStrategy(): ThemeTransitionStrategy {
   const ua = navigator.userAgent;
   const isDuckDuckGo = /DuckDuckGo/i.test(ua);
   const isSafari =
-    /Safari/i.test(ua) &&
-    !/Chrome|Chromium|CriOS|Edg|OPR|Arc/i.test(ua);
+    /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|Arc/i.test(ua);
   if (isDuckDuckGo || isSafari) {
     cachedStrategy = { useAdvanced: false };
     return cachedStrategy;
@@ -70,7 +70,8 @@ function getThemeTransitionStrategy(): ThemeTransitionStrategy {
     return cachedStrategy;
   }
 
-  const isChromiumFamily = /Chrome|Chromium|CriOS|Edg|OPR|Brave|Vivaldi|Arc/i.test(ua);
+  const isChromiumFamily =
+    /Chrome|Chromium|CriOS|Edg|OPR|Brave|Vivaldi|Arc/i.test(ua);
   if (!isChromiumFamily) {
     cachedStrategy = { useAdvanced: false };
     return cachedStrategy;
@@ -115,7 +116,10 @@ export const AnimatedThemeToggler = ({
     }
 
     // Freeze old root background and disable standard CSS transitions so it doesn't jarringly crossfade while expanding
-    document.documentElement.classList.add("disable-transitions", "theme-transitioning");
+    document.documentElement.classList.add(
+      "disable-transitions",
+      "theme-transitioning",
+    );
     let cleanedUp = false;
 
     const cleanup = () => {
@@ -134,10 +138,13 @@ export const AnimatedThemeToggler = ({
 
     // Fallback cleanup in case the View Transition promise never settles.
     // Keep this longer than the CSS mask animation to avoid tearing down classes mid-transition.
-    const fallbackTimer = window.setTimeout(() => {
-      tripThemeTransitionSafetyFuse();
-      cleanup();
-    }, Math.max(duration + 300, 1800));
+    const fallbackTimer = window.setTimeout(
+      () => {
+        tripThemeTransitionSafetyFuse();
+        cleanup();
+      },
+      Math.max(duration + 300, 1800),
+    );
 
     try {
       const transition = document.startViewTransition(() => {
@@ -175,9 +182,7 @@ export const AnimatedThemeToggler = ({
         data-theme-toggle
         {...props}
       >
-        <Moon
-          className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none"
-        />
+        <Moon className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none" />
         <span className="sr-only">Toggle theme (t)</span>
       </button>
     );
@@ -200,18 +205,14 @@ export const AnimatedThemeToggler = ({
           {...props}
         >
           {isDark ? (
-            <Sun
-              className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none"
-            />
+            <Sun className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none" />
           ) : (
-            <Moon
-              className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none"
-            />
+            <Moon className="w-5 h-5 transition-transform duration-500 ease-out motion-reduce:transition-none" />
           )}
           <span className="sr-only">Toggle theme (t)</span>
         </button>
       </TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent side="bottom" align="center" sideOffset={1}>
         <p className="flex items-center gap-2">
           Toggle theme <Kbd>T</Kbd>
         </p>

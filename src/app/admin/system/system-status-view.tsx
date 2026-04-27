@@ -45,14 +45,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AuthenticatedShell } from "@/components/layout/authenticated-shell";
 
 interface AdminStatusViewProps {
   initialComponents: Component[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialIncidents: any[]; // Using any for now to avoid strict type complexity, but locally typed as Incident[]
 }
-
-import { AppHeader } from "@/components/dashboard/ui/app-header";
 
 // Custom event type
 // Custom event type
@@ -164,21 +163,21 @@ export default function SystemStatusView({
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <AppHeader
-        title={
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-semibold truncate">
-              System Status Center
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-              Manage real-time status updates and incident communication.
-            </p>
-          </div>
-        }
-        backTo="/dashboard"
-        hideSearch
-      />
+    <AuthenticatedShell
+      contentClassName="overflow-x-hidden"
+      title={
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-semibold truncate">
+            System Status Center
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+            Manage real-time status updates and incident communication.
+          </p>
+        </div>
+      }
+      backTo="/dashboard"
+      hideSearch
+    >
       <main className="container mx-auto py-8 px-4">
         <div className="space-y-6">
           <Tabs
@@ -270,7 +269,7 @@ export default function SystemStatusView({
           </Tabs>
         </div>
       </main>
-    </div>
+    </AuthenticatedShell>
   );
 }
 
