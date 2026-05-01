@@ -21,7 +21,7 @@
   "registries": {
     "@magicui": "https://magicui.design/r/{name}.json",
     "@creative-tim": "https://www.creative-tim.com/ui/r/{name}.json",
-    "@ncdai": "https://chanhdai.com/r/{name}.json"
+    "@ncdai": "https://chanhdai.com/r/{name}.json",
     "@fonttrio": "https://www.fonttrio.xyz/r/{name}.json"
   }
 }
