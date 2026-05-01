@@ -91,14 +91,14 @@ export function getEmailHtml({
     
     /* Elements */
     .header { 
-      padding: 36px 40px 26px; 
+      padding: 0; 
       text-align: center; 
     }
     
     .logo { 
       color: ${textColor}; 
       text-decoration: none; 
-      display: inline-block;
+      display: block;
       line-height: 0;
       color: ${textColor} !important;
       text-decoration: none !important;
@@ -106,9 +106,10 @@ export function getEmailHtml({
 
     .logo img {
       display: block;
-      width: 214px;
+      width: 100%;
       max-width: 100%;
       height: auto;
+      border-bottom: 1px solid ${borderColor};
     }
 
     .logo,
@@ -130,7 +131,7 @@ export function getEmailHtml({
     }
     
     .body { 
-      padding: 0 40px 44px; 
+      padding: 32px 40px 44px; 
     }
     
     .heading { 
@@ -206,8 +207,8 @@ export function getEmailHtml({
     /* Responsive */
     @media only screen and (max-width: 600px) {
       .wrapper { padding: 20px 0; }
-      .header { padding: 30px 24px 22px; }
-      .body { padding: 0 24px 32px; }
+      .header { padding: 0; }
+      .body { padding: 24px 24px 32px; }
       .footer { padding: 24px; }
       .heading { font-size: 22px; }
       .text { font-size: 15px; }
@@ -227,9 +228,9 @@ export function getEmailHtml({
                 <img
                   src="${logo}"
                   alt="Envault"
-                  width="214"
-                  height="78"
-                  style="display: block; width: 214px; height: auto; max-width: 100%;"
+                  width="560"
+                  height="203"
+                  style="display: block; width: 100%; height: auto; max-width: 100%; border-bottom: 1px solid ${borderColor};"
                 >
               </a>
             </div>
