@@ -267,3 +267,9 @@
     1 100%
   );
 }
+
+html,
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

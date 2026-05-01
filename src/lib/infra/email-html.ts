@@ -10,17 +10,15 @@ interface EmailProps {
   action?: EmailAction;
   footerText?: string; // Additional text below the button or main content
   logoUrl?: string;
-  logoDarkUrl?: string;
 }
 
-// Logo URLs - Light and Dark PNG variants
+// Logo URL
 const DEFAULT_APP_URL = (
   process.env.EMAIL_PUBLIC_APP_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
   "https://www.envault.tech"
 ).replace(/\/+$/, "");
-const DEFAULT_LOGO_LIGHT_URL = `${DEFAULT_APP_URL}/email-logo-light.png`;
-const DEFAULT_LOGO_DARK_URL = `${DEFAULT_APP_URL}/email-logo-dark.png`;
+const DEFAULT_LOGO_URL = `${DEFAULT_APP_URL}/email-logo.png`;
 
 /**
  * Generates a responsive, styled HTML email string.
@@ -32,7 +30,6 @@ export function getEmailHtml({
   action,
   footerText,
   logoUrl,
-  logoDarkUrl,
 }: EmailProps): string {
   // Brand Colors based on Envault's theme
   const primaryColor = "#18181b"; // Zinc-900
@@ -41,8 +38,7 @@ export function getEmailHtml({
   const textColor = "#18181b";
   const mutedColor = "#52525b"; // Zinc-600
   const borderColor = "#e4e4e7"; // Zinc-200
-  const logoLight = logoUrl || DEFAULT_LOGO_LIGHT_URL;
-  const logoDark = logoDarkUrl || DEFAULT_LOGO_DARK_URL;
+  const logo = logoUrl || DEFAULT_LOGO_URL;
 
   // Pre-header/Preview Text hidden element style
   const hiddenStyle =
@@ -115,14 +111,6 @@ export function getEmailHtml({
       height: auto;
     }
 
-    .logo-light {
-      display: block !important;
-    }
-
-    .logo-dark {
-      display: none !important;
-    }
-
     .logo,
     .logo:visited,
     .logo:hover,
@@ -135,26 +123,10 @@ export function getEmailHtml({
       .logo {
         color: #ffffff !important;
       }
-
-      .logo-light {
-        display: none !important;
-      }
-
-      .logo-dark {
-        display: block !important;
-      }
     }
 
     [data-ogsc] .logo {
       color: #ffffff !important;
-    }
-
-    [data-ogsc] .logo-light {
-      display: none !important;
-    }
-
-    [data-ogsc] .logo-dark {
-      display: block !important;
     }
     
     .body { 
@@ -252,27 +224,13 @@ export function getEmailHtml({
           <div class="main">
             <div class="header">
               <a href="${DEFAULT_APP_URL}" class="logo" style="color: ${textColor} !important; text-decoration: none !important;">
-                <!--[if mso]>
-                <img src="${logoLight}" width="214" height="70" alt="Envault" style="display: block; width: 214px; height: auto; max-width: 100%;" />
-                <![endif]-->
-                <!--[if !mso]><!-- -->
                 <img
-                  src="${logoLight}"
+                  src="${logo}"
                   alt="Envault"
                   width="214"
-                  height="70"
-                  class="logo-light"
+                  height="78"
                   style="display: block; width: 214px; height: auto; max-width: 100%;"
                 >
-                <img
-                  src="${logoDark}"
-                  alt="Envault"
-                  width="214"
-                  height="70"
-                  class="logo-dark"
-                  style="display: none; width: 214px; height: auto; max-width: 100%;"
-                >
-                <!--<![endif]-->
               </a>
             </div>
             <div class="body">

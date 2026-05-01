@@ -34,7 +34,7 @@ export async function sendBrevoEmail(options: SendEmailOptions) {
   const senderObj = parseSenderString(from);
 
   const toArray = Array.isArray(to) ? to : [to];
-  const toObjects = toArray.map(t => parseSenderString(t));
+  const toObjects = toArray.map((t) => parseSenderString(t));
 
   const payload: Record<string, unknown> = {
     sender: senderObj,
@@ -51,7 +51,7 @@ export async function sendBrevoEmail(options: SendEmailOptions) {
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "accept": "application/json",
+        accept: "application/json",
         "api-key": apiKey,
         "content-type": "application/json",
       },
@@ -60,7 +60,10 @@ export async function sendBrevoEmail(options: SendEmailOptions) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return { data: null, error: new Error(`Brevo API error: ${response.status} ${errorText}`) };
+      return {
+        data: null,
+        error: new Error(`Brevo API error: ${response.status} ${errorText}`),
+      };
     }
 
     const data = await response.json();
@@ -89,7 +92,7 @@ const APP_URL = (
   process.env.NEXT_PUBLIC_APP_URL ||
   "https://www.envault.tech"
 ).replace(/\/+$/, "");
-const LOGO_URL = `${APP_URL}/email-logo-light.png`;
+const LOGO_URL = `${APP_URL}/email-logo.png`;
 
 function isValidTimezone(timezone: string): boolean {
   try {
