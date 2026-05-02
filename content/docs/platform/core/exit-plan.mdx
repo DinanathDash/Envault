@@ -1,0 +1,34 @@
+---
+title: Exit Plan & Data Portability
+description: How to extract your secrets and abandon Envault in 5 minutes.
+---
+
+Vendor lock-in is unacceptable for security tools. To mitigate the "Bus Factor", we guarantee that Envault does not hold your data hostage. You can extract your decrypted plaintext data entirely through the CLI and completely sever ties with our infrastructure.
+
+> **Note:** Because Envault acts as the central source of truth, extraction requires an active, authenticated CLI session. If a total platform sunsetting is announced, you must execute this protocol before the API goes offline.
+
+## The Extraction Protocol
+
+Because `envault pull` decrypts locally via AES-256-GCM, you can export your data entirely from the terminal, bypassing the dashboard entirely.
+
+To ensure a clean extraction without the CLI pausing for overwrite confirmations, use the `--force` flag alongside the `--env` and `--file` flags.
+
+### Automated Extraction
+
+Run the exact commands below to dump all three default environments into separate plaintext files.
+```bash
+envault pull --env development --file .env.development.backup --force
+```
+```bash
+envault pull --env preview --file .env.preview.backup --force
+```
+```bash
+envault pull --env production --file .env.production.backup --force
+```
+
+## Agent Cleanup
+
+If you integrated Envault with local AI assistants (like Claude Desktop or Cursor), remove the automated access parameters:
+
+1. **Uninstall CLI Integration:** Revert the workspace binding by deleting the Envault `mcpServers` configuration from your `.vscode/mcp.json` or your global client config.
+2. **Remove MCP Tokens:** Ensure any `envault_agt_` MCP tokens are deleted from your local environment variables to guarantee revoked access.
