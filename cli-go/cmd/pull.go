@@ -86,7 +86,7 @@ var pullCmd = &cobra.Command{
 				fmt.Fprintln(os.Stderr, ui.ColorRed("\nError: Pull requires confirmation to overwrite an existing file. Please use --force in headless environments."))
 				os.Exit(1)
 			}
-			
+
 			// Fetch project name for better warning
 			client := api.NewClient()
 			projectName := "Envault"
@@ -222,19 +222,19 @@ var pullCmd = &cobra.Command{
 		tmpPath := tmpFile.Name()
 
 		for _, secret := range secretsResp.Secrets {
-				plaintext := "<<DECRYPTION_FAILED>>"
-				if secret.Ciphertext != "" && secret.Ciphertext != "<<DECRYPTION_FAILED>>" && secret.Dek != "" {
-					decrypted, err := crypto.DecryptAESGCM(secret.Ciphertext, secret.Dek)
-					if err == nil {
-						plaintext = decrypted
-					} else {
-						fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("Warning: failed to decrypt secret '%s': %v", secret.Key, err)))
-					}
-				} else if secret.Value != "" || (secret.Ciphertext == "" && secret.Dek == "") {
-					plaintext = secret.Value
+			plaintext := "<<DECRYPTION_FAILED>>"
+			if secret.Ciphertext != "" && secret.Ciphertext != "<<DECRYPTION_FAILED>>" && secret.Dek != "" {
+				decrypted, err := crypto.DecryptAESGCM(secret.Ciphertext, secret.Dek)
+				if err == nil {
+					plaintext = decrypted
+				} else {
+					fmt.Fprintln(os.Stderr, ui.ColorYellow(fmt.Sprintf("Warning: failed to decrypt secret '%s': %v", secret.Key, err)))
 				}
+			} else if secret.Value != "" || (secret.Ciphertext == "" && secret.Dek == "") {
+				plaintext = secret.Value
+			}
 
-				if _, err := fmt.Fprintf(tmpFile, "%s=%s\n", secret.Key, plaintext); err != nil {
+			if _, err := fmt.Fprintf(tmpFile, "%s=%s\n", secret.Key, plaintext); err != nil {
 				_ = tmpFile.Close()
 				_ = os.Remove(tmpPath)
 				s.Stop()

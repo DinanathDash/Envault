@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -23,7 +24,7 @@ func runCLI(t *testing.T, env []string, args ...string) (stdout, stderr string, 
 	bin := buildBinary(t)
 
 	cmd := exec.Command(bin, args...)
-	cmd.Env = append(os.Environ(), env...)
+	cmd.Env = append(filterEnvRoot(os.Environ()), env...)
 
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf
@@ -44,6 +45,16 @@ var (
 	builtBin     string
 	builtBinOnce = new(struct{ once interface{} }) // won't compile; use t.TempDir per test
 )
+
+func filterEnvRoot(env []string) []string {
+	filtered := []string{}
+	for _, e := range env {
+		if !strings.HasPrefix(e, "ENVAULT_TOKEN=") && !strings.HasPrefix(e, "ENVAULT_SERVICE_TOKEN=") {
+			filtered = append(filtered, e)
+		}
+	}
+	return filtered
+}
 
 func buildBinary(t *testing.T) string {
 	t.Helper()
@@ -109,9 +120,9 @@ func TestRunCmd_NoConfigLeakOnStdout(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "run", "echo", "PAYLOAD_ONLY")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 
@@ -140,7 +151,7 @@ func TestErrorsRouteToStderr_InvalidProjectID(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "run", "echo", "hello")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(), "ENVAULT_TOKEN=x")
+	cmd.Env = append(filterEnvRoot(os.Environ()), "ENVAULT_TOKEN=x")
 
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf
@@ -169,9 +180,9 @@ func TestErrorsRouteToStderr_RunFailed(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "run", "echo", "hello")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 
@@ -213,9 +224,9 @@ func TestPullCmd_NoLeftoverTempFile(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "pull", "--force")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 	var errBuf bytes.Buffer
@@ -253,9 +264,9 @@ func TestPullCmd_SecretWrittenToEnvFile(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "pull", "--force")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 	_ = cmd.Run()
@@ -296,9 +307,9 @@ func TestPullCmd_SIGINTExitsWithCode130(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "pull", "--force")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+slowSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 	var outBuf, errBuf bytes.Buffer
@@ -368,9 +379,15 @@ func TestDeployCmd_SIGINTExitsWithCode130(t *testing.T) {
 	// --force skips confirmation, --dry-run skips the POST (so we test the diff GET).
 	cmd := exec.Command(bin, "deploy", "--force")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+
+	home := filepath.Join(tmp, "home")
+	os.MkdirAll(filepath.Join(home, ".envault"), 0o700)
+	os.WriteFile(filepath.Join(home, ".envault", "config.toml"), []byte("[auth]\ntoken = \"envault_at_test-token\"\n"), 0o600)
+	cmd.Env = append(cmd.Env, "HOME="+home)
+
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+slowSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 	var outBuf, errBuf bytes.Buffer
@@ -434,9 +451,9 @@ func TestRunCmd_PropagatesChildExitCode(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "run", "--", "sh", "-c", "exit 42")
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 
@@ -473,9 +490,9 @@ func TestRunCmd_StdoutIsPureChildOutput(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "run", "--", "sh", "-c", `echo "CLEAN_OUTPUT"`)
 	cmd.Dir = tmp
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(filterEnvRoot(os.Environ()),
 		"ENVAULT_CLI_URL="+mockSrv.URL+"/api/cli",
-		"ENVAULT_TOKEN=test-token",
+		"ENVAULT_TOKEN=envault_svc_test-token",
 		"ENVAULT_ALLOW_INSECURE_HTTP=1",
 	)
 
@@ -498,7 +515,7 @@ func TestAuditInstallHook_NotInGitRepo_ErrorOnStderr(t *testing.T) {
 	bin := buildBinary(t)
 	cmd := exec.Command(bin, "audit", "--install-hook")
 	cmd.Dir = tmp
-	cmd.Env = os.Environ()
+	cmd.Env = filterEnvRoot(os.Environ())
 
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf

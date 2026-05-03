@@ -37,7 +37,7 @@ var deployCmd = &cobra.Command{
 			// Fallback to check token stored in global config
 			token = viper.GetString("auth.token")
 		}
-		
+
 		if strings.HasPrefix(token, "envault_svc_") {
 			fmt.Fprintln(os.Stderr, ui.ColorRed("Error: Deploy is disabled for Service Tokens."))
 			fmt.Fprintln(os.Stderr, ui.ColorYellow("       CI/CD pipelines must be strictly read-only. Use 'envault run' or 'envault pull' instead."))
