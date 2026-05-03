@@ -107,6 +107,10 @@ func computeDiff(ctx context.Context, projectID, targetEnv, targetFile string) (
 	if err != nil {
 		return diffResult{}, err
 	}
+	return computeDiffFromMap(ctx, projectID, targetEnv, localEnv)
+}
+
+func computeDiffFromMap(ctx context.Context, projectID, targetEnv string, localEnv map[string]string) (diffResult, error) {
 
 	client := api.NewClient()
 	path := fmt.Sprintf("/projects/%s/secrets?environment=%s", projectID, url.QueryEscape(targetEnv))

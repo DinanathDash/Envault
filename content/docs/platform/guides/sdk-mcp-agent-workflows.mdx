@@ -115,6 +115,8 @@ When an agent requests a mutation, Envault executes the same approval sequence b
    envault approve <approval_id>
    ```
 
+   **Note:** The `approve` command now provides a cryptographic visual diff directly in your terminal, outlining Additions (+), Deletions (-), and Modifications (~). You must be in an interactive terminal to approve the change, otherwise it fails to prevent blind execution.
+
 5. **Execution:** Once approved, the mutation is securely executed, and the agent proceeds with its task.
 
 <Callout type="info">

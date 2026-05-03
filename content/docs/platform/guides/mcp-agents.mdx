@@ -64,7 +64,7 @@ When an AI attempts a mutation (for example: creating or updating a secret using
 2. Envault CLI intercepts and forwards the request to the Envault API using the delegated `envault_agt_` JWT.
 3. The API responds with `202 Accepted` and creates a pending approval instead of executing immediately.
 4. MCP surfaces a secure **Approval Link** back in your AI chat UI.
-5. You open the link, review the exact proposed keys/values in the dashboard, and click **Approve**.
+5. You open the link, review the exact proposed keys/values in the dashboard, and click **Approve**. Alternatively, you can approve from your terminal using `envault approve <approval_id>`, which now provides a visual cryptographic diff to prevent blind executions.
 6. Envault then encrypts and applies the change.
 
 <Callout type="warn">

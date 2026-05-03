@@ -626,3 +626,89 @@ async function rollbackMutations(
     });
   }
 }
+
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: approvalId } = await params;
+  if (!approvalId) {
+    return NextResponse.json({ error: "Missing approval ID" }, { status: 400 });
+  }
+
+  const authHeader = req.headers.get("Authorization") || "";
+  const bearerToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : "";
+
+  let actorId: string | null = null;
+
+  if (bearerToken) {
+    if (!bearerToken.startsWith("envault_at_")) {
+      return NextResponse.json(
+        { error: "Invalid CLI access token format" },
+        { status: 401 },
+      );
+    }
+
+    const cliAuth = await validateCliToken(req);
+    if (cliAuth instanceof NextResponse) {
+      return cliAuth;
+    }
+    if (cliAuth.type !== "user") {
+      return NextResponse.json(
+        { error: "Only user-bound CLI access tokens can fetch requests" },
+        { status: 403 },
+      );
+    }
+    actorId = cliAuth.userId;
+  } else {
+    // Session fallback... maybe? NextRequest doesn't have cookies easily unless we do next/headers
+    // But this is just for the CLI anyway.
+    return NextResponse.json({ error: "Unauthorized access: CLI token required" }, { status: 401 });
+  }
+
+  const { data: pendingApproval, error: pendingError } = await supabaseService
+    .from("pending_approvals")
+    .select("payload_data, status, project_id")
+    .eq("id", approvalId)
+    .single();
+
+  if (pendingError || !pendingApproval) {
+    return NextResponse.json(
+      { error: "Pending approval not found" },
+      { status: 404 },
+    );
+  }
+
+  // Authorize check
+  const { data: project } = await supabaseService
+    .from("projects")
+    .select("user_id")
+    .eq("id", pendingApproval.project_id)
+    .single();
+
+  const isProjectOwner = project?.user_id === actorId;
+
+  const { data: member } = await supabaseService
+    .from("project_members")
+    .select("role")
+    .eq("project_id", pendingApproval.project_id)
+    .eq("user_id", actorId)
+    .in("role", ["owner", "editor"])
+    .single();
+
+  if (!isProjectOwner && !member) {
+    return NextResponse.json(
+      { error: "Forbidden: Missing project access rights" },
+      { status: 403 },
+    );
+  }
+
+  return NextResponse.json({
+    status: pendingApproval.status,
+    project_id: pendingApproval.project_id,
+    payload_data: pendingApproval.payload_data
+  });
+}
