@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -33,6 +34,15 @@ type Client struct {
 	Token   string
 	HTTP    *http.Client
 }
+
+var (
+	defaultRetryMaxDuration = 5 * time.Minute
+	retryBaseBackoff        = 2 * time.Second
+	retryMultiplier         = 2.0
+	sleepWithContextFn      = sleepWithContext
+	refreshTokenFn          = func(c *Client, httpClient *http.Client) error { return c.refreshToken(httpClient) }
+	nowFn                   = time.Now
+)
 
 func NewClient() *Client {
 	baseURL := os.Getenv("ENVAULT_CLI_URL")
@@ -189,62 +199,187 @@ func (c *Client) doReqCtx(ctx context.Context, method, path string, body interfa
 		httpClient = &http.Client{}
 	}
 
-	var bodyReader io.Reader
-
+	var reqBody []byte
+	var err error
 	if body != nil {
-		reqBody, err := json.Marshal(body)
+		reqBody, err = json.Marshal(body)
 		if err != nil {
 			return nil, err
 		}
-		bodyReader = bytes.NewBuffer(reqBody)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, bodyReader)
-	if err != nil {
-		return nil, err
-	}
+	start := nowFn()
+	attempt := 1
+	tokenRefreshTried := false
+	maxDuration := resolveRetryMaxDuration()
 
-	req.Header.Set("Content-Type", "application/json")
-	if c.Token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.Token)
-	}
-	if actorSource := strings.TrimSpace(os.Getenv("ENVAULT_CLI_ACTOR_SOURCE")); actorSource != "" {
-		req.Header.Set("X-Envault-Actor-Source", actorSource)
-	}
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 401 && canRetry {
-		if c.Token != "" && !strings.HasPrefix(c.Token, "envault_svc_") {
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			errRefresh := c.refreshToken(httpClient)
-			if errRefresh == nil {
-				return c.doReqCtx(ctx, method, path, body, false, httpClient)
-			}
-			return nil, fmt.Errorf("Refresh Token Exchange Failed: %v | (Original Auth Error: %s)", errRefresh, string(bodyBytes))
+	for {
+		var bodyReader io.Reader
+		if reqBody != nil {
+			bodyReader = bytes.NewReader(reqBody)
 		}
-	}
 
-	if resp.StatusCode >= 400 {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		bodyStr := string(bodyBytes)
+		req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, bodyReader)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		if c.Token != "" {
+			req.Header.Set("Authorization", "Bearer "+c.Token)
+		}
+		if actorSource := strings.TrimSpace(os.Getenv("ENVAULT_CLI_ACTOR_SOURCE")); actorSource != "" {
+			req.Header.Set("X-Envault-Actor-Source", actorSource)
+		}
+
+		resp, reqErr := httpClient.Do(req)
+		if reqErr != nil {
+			if !canRetry || !isRetryableRequestError(reqErr) {
+				return nil, reqErr
+			}
+			wait, ok := computeRetryWait(start, attempt, maxDuration)
+			if !ok {
+				return nil, reqErr
+			}
+			logRetryWarning(method, path, attempt, reqErr, wait)
+			if err := sleepWithContextFn(ctx, wait); err != nil {
+				return nil, err
+			}
+			attempt++
+			continue
+		}
+
+		bodyBytes, readErr := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
+
+		if resp.StatusCode == 401 && canRetry && !tokenRefreshTried {
+			if c.Token != "" && !strings.HasPrefix(c.Token, "envault_svc_") {
+				errRefresh := refreshTokenFn(c, httpClient)
+				if errRefresh == nil {
+					tokenRefreshTried = true
+					continue
+				}
+				return nil, fmt.Errorf("Refresh Token Exchange Failed: %v | (Original Auth Error: %s)", errRefresh, string(bodyBytes))
+			}
+		}
+
+		if isRetryableStatusCode(resp.StatusCode) && canRetry {
+			wait, ok := computeRetryWait(start, attempt, maxDuration)
+			if !ok {
+				return nil, &APIError{StatusCode: resp.StatusCode, Body: string(bodyBytes)}
+			}
+			logRetryWarning(method, path, attempt, fmt.Errorf("server returned %s", resp.Status), wait)
+			if err := sleepWithContextFn(ctx, wait); err != nil {
+				return nil, err
+			}
+			attempt++
+			continue
+		}
+
+		if resp.StatusCode >= 400 {
+			bodyStr := string(bodyBytes)
+			contentType := resp.Header.Get("Content-Type")
+			if strings.Contains(contentType, "text/html") {
+				bodyStr = "Server returned an HTML page (" + resp.Status + "). Ensure the API server is running."
+			}
+			return nil, &APIError{StatusCode: resp.StatusCode, Body: bodyStr}
+		}
+
 		contentType := resp.Header.Get("Content-Type")
 		if strings.Contains(contentType, "text/html") {
-			bodyStr = "Server returned an HTML page (" + resp.Status + "). Ensure the API server is running."
+			return nil, &APIError{StatusCode: resp.StatusCode, Body: "Server returned HTML instead of expected JSON API response. Ensure the API server is running."}
 		}
-		return nil, &APIError{StatusCode: resp.StatusCode, Body: bodyStr}
+
+		return bodyBytes, nil
+	}
+}
+
+func isRetryableStatusCode(statusCode int) bool {
+	return statusCode >= 500 && statusCode <= 599
+}
+
+func isRetryableRequestError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+	return IsFallbackEligible(err)
+}
+
+func computeRetryWait(start time.Time, attempt int, maxDuration time.Duration) (time.Duration, bool) {
+	if attempt < 1 {
+		attempt = 1
+	}
+	exp := retryBaseBackoff
+	for i := 1; i < attempt; i++ {
+		next := time.Duration(float64(exp) * retryMultiplier)
+		if next <= exp {
+			break
+		}
+		exp = next
+	}
+	wait := jitterDuration(exp)
+	if wait <= 0 {
+		wait = retryBaseBackoff
 	}
 
-	contentType := resp.Header.Get("Content-Type")
-	if strings.Contains(contentType, "text/html") {
-		return nil, &APIError{StatusCode: resp.StatusCode, Body: "Server returned HTML instead of expected JSON API response. Ensure the API server is running."}
+	elapsed := nowFn().Sub(start)
+	if elapsed >= maxDuration {
+		return 0, false
+	}
+	if elapsed+wait > maxDuration {
+		remaining := maxDuration - elapsed
+		if remaining > time.Second {
+			wait = remaining
+			return wait, true
+		}
+		return 0, false
+	}
+	return wait, true
+}
+
+func resolveRetryMaxDuration() time.Duration {
+	raw := strings.TrimSpace(os.Getenv("ENVAULT_RETRY_MAX_DURATION"))
+	if raw == "" {
+		return defaultRetryMaxDuration
 	}
 
-	return io.ReadAll(resp.Body)
+	d, err := time.ParseDuration(raw)
+	if err != nil || d <= 0 {
+		return defaultRetryMaxDuration
+	}
+
+	return d
+}
+
+func jitterDuration(base time.Duration) time.Duration {
+	// Full-jitter style randomization in [base/2, base) to spread retries.
+	half := base / 2
+	if half <= 0 {
+		return base
+	}
+	return half + time.Duration(rand.Int63n(int64(half)))
+}
+
+func logRetryWarning(method, path string, attempt int, cause error, wait time.Duration) {
+	fmt.Fprintf(os.Stderr, "Warning: Envault API transient failure (%s %s, attempt %d). Retrying in %s. Cause: %v\n",
+		method, path, attempt, wait.Round(time.Millisecond), cause)
+}
+
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func IsFallbackEligible(err error) bool {

@@ -59,6 +59,7 @@ Flags:
 - `-p, --project <id>`: Target a specific project UUID instead of the linked one
 - `--file <path>`: Override the output file path (e.g., `--file .env.custom`)
 - `-f, --force`: Skip overwrite confirmations
+- `--timeout <duration>`: Set the maximum duration the CLI will wait and retry if the Envault API experiences transient network issues (e.g., `30s`, `5m`). Defaults to `5m`.
 
 ### Automatic Safety Guards
 
@@ -144,6 +145,10 @@ envault run --env preview -- npm run dev
 
 The `run` command fetches secrets and dynamically pipes them into the specified process's environment variables.
 This is the most secure method of utilizing secrets locally, as plaintext variables never touch your hard drive.
+
+Flags:
+
+- `--timeout <duration>`: Set the maximum duration the CLI will wait and retry if the Envault API experiences transient network issues (e.g., `30s`, `5m`). Defaults to `5m`.
 
 ---
 
