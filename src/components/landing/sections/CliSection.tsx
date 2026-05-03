@@ -1,4 +1,4 @@
-import { Terminal, GitBranch, Zap, Shield, ArrowRight } from "lucide-react";
+import { Terminal, Github, Zap, Shield, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimatedTerminal } from "@/components/landing/animations/animated-terminal";
@@ -38,9 +38,9 @@ export async function CliSection() {
 
   const workflowSteps = [
     {
-      icon: GitBranch,
-      title: "Workspace-Aware Context Switching",
-      desc: "Switch between projects and environments seamlessly. The CLI remembers your context and prevents accidental cross-project operations.",
+      icon: Github,
+      title: "GitHub JIT Onboarding",
+      desc: "Link the repo once, then collaborators get Viewer access automatically when they run `envault pull` in that workspace.",
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
@@ -73,12 +73,13 @@ export async function CliSection() {
               </div>
 
               <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold tracking-tight leading-[1.1] text-void dark:text-bone">
-                Manage Environment Variables from your Terminal.
+                Onboard developers with two commands.
               </h2>
               <p className="max-w-lg font-mono text-sm uppercase tracking-wider text-void/60 dark:text-bone/60">
-                Experience the speed of command-line secret management. Push,
-                pull, and sync your environment variables without leaving your
-                workflow.
+                ENVAULT LOGIN. ENVAULT PULL.
+                <br />
+                GITHUB JIT CHECKS REPO COLLABORATORS AND UNLOCKS VIEW ACCESS
+                INSTANTLY.
               </p>
             </SlideUp>
 
