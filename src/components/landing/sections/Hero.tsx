@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { Timer, ArrowRight, ShieldCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InstallTerminal } from "@/components/landing/ui/install-terminal";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
@@ -10,9 +10,9 @@ export function Hero() {
       <div className="container relative z-20 px-4 md:px-6 grid md:grid-cols-2 gap-12 items-center">
         <SlideUp className="flex flex-col items-start text-left space-y-8 max-w-2xl">
           <div className="flex items-center space-x-3 bg-primary/5 backdrop-blur-sm px-5 py-2 rounded-none border border-primary/10">
-            <ShieldCheck className="w-5 h-5 text-primary" />
+            <Timer className="w-5 h-5 text-primary" />
             <span className="text-sm font-mono uppercase tracking-wider text-primary">
-              MILITARY-GRADE ENCRYPTION
+              NEW DEV IN 10 SECONDS
             </span>
           </div>
 
@@ -24,11 +24,11 @@ export function Hero() {
           </h1>
 
           <p className="text-sm md:text-base lg:text-lg font-mono text-muted-foreground max-w-lg leading-relaxed border-l-2 border-primary/20 pl-4">
-            STOP MANUAL. ENV SHUFFLING.
+            STOP PASSING .ENV FILES AROUND.
             <br />
-            RUN SECRETS THROUGH CLI, SDK, AND MCP.
+            RUN `ENVAULT LOGIN` THEN `ENVAULT PULL`.
             <br />
-            HUMAN-IN-THE-LOOP APPROVALS. ZERO-KNOWLEDGE ARCHITECTURE.
+            GITHUB JIT GRANTS ACCESS FROM REPO MEMBERSHIP.
           </p>
 
           {/* Tabbed Installation UI */}
@@ -116,7 +116,7 @@ export function Hero() {
 
           <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            <span>Secured by AES-256-GCM & Supabase Auth</span>
+            <span>Trust layer: AES-256-GCM, passkeys, and RBAC</span>
           </div>
         </SlideUp>
         {/* Right column reserved for 3D model */}

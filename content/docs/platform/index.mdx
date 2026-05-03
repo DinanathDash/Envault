@@ -1,17 +1,12 @@
 ---
 title: Introduction
-description: Secure, collaborative, and developer-friendly environment variable management.
+description: Onboard developers to project secrets in seconds with `envault login` and `envault pull`.
 icon: Rocket
 ---
 
 import {
-  NotebookPen,
   Terminal,
   Shield,
-  Server,
-  Network,
-  Lock,
-  Users,
   Database,
   ServerCrash,
   Palette,
@@ -24,16 +19,43 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ## Welcome to Envault
 
-**Envault** is a secure secret management platform for modern development teams. It simplifies the chaos of managing `.env` files across multiple projects, environments, and team members, ensuring your sensitive data is **always encrypted** and **always synchronized**.
+**Envault** is a developer onboarding tool for project secrets. It replaces manual `.env` sharing with a fast terminal flow: run `envault login`, run `envault pull`, and start coding.
+
+For teams using GitHub, Envault's Just-in-Time (JIT) integration checks repository collaborators during `envault pull` and grants Viewer access automatically when eligible. That means no manual invite loop for every new teammate.
 
 Envault's repository is visible for transparency and security auditing under a proprietary all-rights-reserved license, with MIT-licensed exceptions for `mcp-server/` and `src/lib/sdk/`. [Learn more about our licensing.](/licensing)
 
 <Callout title="Why Envault?">
-  Traditional secret management often involves insecurely sharing `.env` files
-  over Slack or using expensive, enterprise-only SaaS solutions. Envault bridges
-  the gap: **Bank-grade security** with a **developer-first experience**,
-  completely under your control.
+  Traditional onboarding still means asking someone for a `.env` file, waiting
+  for access, and troubleshooting setup drift. Envault standardizes onboarding to
+  two commands in the repo (after one-time CLI install and project linkage):
+  `envault login` -> `envault pull`.
 </Callout>
+
+## Quickstart (10 seconds)
+
+### Phase 1 (Project Owner): Link The Repository Once
+
+```bash
+envault init
+```
+
+- `envault init`: Maps the repository to an Envault project and writes `envault.json`.
+- During init, select the default environment (for example `development`).
+- Commit `envault.json` to GitHub so every teammate gets the same project linkage and default environment context.
+
+### Phase 2 (New Teammate): 10-Second Onboarding Flow
+
+```bash
+envault login
+```
+```bash
+envault pull
+```
+
+- `envault login`: Authenticates your local CLI session.
+- `envault pull`: Uses committed `envault.json`, then pulls and decrypts project variables into your local `.env` file.
+- With GitHub JIT enabled: active repository collaborators get Viewer access on pull without a manual invite.
 
 ## Quick Links
 
@@ -68,21 +90,24 @@ Envault's repository is visible for transparency and security auditing under a p
 
 Envault isn't just a database for strings. It's a complete ecosystem for secret lifecycle management.
 
-### Security First
+### Setup Speed First
 
-Security isn't an afterthought; it's the foundation.
+Built for terminal-first onboarding and daily developer workflows.
+
+- **Two-Command Onboarding**: `envault login` followed by `envault pull`.
+- **One-Time Project Initialization**: `envault init` links the repo and stores default environment context in committed `envault.json`.
+- **GitHub JIT Access**: Repository collaborators receive automatic Viewer access during pull.
+- **Unified CLI**: A zero-dependency Go CLI for local development flows.
+- **Project Workspaces**: Isolate secrets by project (e.g., `web-app`, `backend-api`).
+
+### Security And Access Controls
+
+Security remains built in, but now as the trust layer behind fast onboarding.
 
 - **AES-256-GCM Encryption**: Utilizing a robust envelope encryption strategy.
 - **Zero-Knowledge Architecture**: Secrets are decrypted only in memory when requested.
 - **Automatic Key Rotation**: Rotate keys seamlessly without downtime.
 - **Passkey Support**: Passwordless, biometric login powered by WebAuthn.
-
-### Developer Experience
-
-Built to fit into your existing workflow, not disrupt it.
-
-- **Unified CLI**: `envault pull` is all you need to sync secrets.
-- **Project Workspaces**: Isolate secrets by project (e.g., `web-app`, `backend-api`).
 - **Team Collaboration**: Granular permissions (Owner, Editor, Viewer) for every member.
 - **Dedicated Support Page**: Integrated troubleshooting options directly within the app.
 - **Interactive Changelog**: Beautiful, animated timeline with comet scroll physics and paginated release history to keep you updated on Envault features.
@@ -99,8 +124,8 @@ Built to fit into your existing workflow, not disrupt it.
 At a high level, Envault acts as the single source of truth for your environment variables.
 
 1.  **Push**: Developers push encrypted secrets to a central project.
-2.  **Manage**: Owners control access using Role-Based Access Control (RBAC).
-3.  **Pull**: Apps and developers pull secrets into their local environments or CI/CD pipelines securely.
+2.  **Authorize**: GitHub JIT and RBAC decide who can pull.
+3.  **Pull**: Developers run `envault pull` to sync secrets locally in seconds.
 
 ## Tech Stack
 
