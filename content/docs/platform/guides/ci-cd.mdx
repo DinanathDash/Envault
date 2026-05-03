@@ -125,3 +125,16 @@ npx @dinanathdash/envault run --env development -- npm run dev
 ```
 
 Use Service Tokens only for non-human automation contexts (CI/CD, bots, deploy systems).
+
+## Network Resilience and Timeouts
+
+By default, the Envault CLI is highly resilient to transient network drops. If the Envault API is temporarily unreachable during a CI/CD run, `envault run` will automatically retry with exponential backoff for up to **5 minutes**.
+
+If you have strict CI/CD billing constraints and prefer your pipeline to fail faster during an outage, override this behavior using the `--timeout` flag or the environment variable:
+
+```bash
+# Fail fast after 30 seconds
+envault run --env production --timeout 30s -- npm run build
+```
+
+Alternatively, set `ENVAULT_RETRY_MAX_DURATION=30s` in your pipeline secrets.

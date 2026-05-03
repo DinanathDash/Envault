@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/DinanathDash/Envault/cli-go/internal/api"
@@ -40,6 +41,7 @@ type ProjectResponse struct {
 var forcePull bool
 var projectFlag string
 var fileFlag string
+var pullTimeoutFlag time.Duration
 
 var pullCmd = &cobra.Command{
 	Use:   "pull",
@@ -47,7 +49,7 @@ var pullCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Graceful cancellation: cancel the context on Ctrl+C / SIGTERM so that
 		// in-flight HTTP requests are aborted cleanly.
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), resolveCLINetworkTimeout(pullTimeoutFlag))
 		defer cancel()
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
@@ -335,4 +337,5 @@ func init() {
 	pullCmd.Flags().BoolVarP(&forcePull, "force", "f", false, "Overwrite .env without confirmation")
 	pullCmd.Flags().StringVarP(&projectFlag, "project", "p", "", "Project ID")
 	pullCmd.Flags().StringVar(&fileFlag, "file", "", "Local .env file path override")
+	pullCmd.Flags().DurationVar(&pullTimeoutFlag, "timeout", 0, "Maximum duration for API retry/wait behavior (e.g. 30s, 2m). Overrides ENVAULT_RETRY_MAX_DURATION.")
 }

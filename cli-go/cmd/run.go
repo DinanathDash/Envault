@@ -1,13 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +17,8 @@ import (
 	"github.com/DinanathDash/Envault/cli-go/internal/ui"
 	"github.com/spf13/cobra"
 )
+
+var runTimeoutFlag time.Duration
 
 var runCmd = &cobra.Command{
 	Use:   "run -- <command>",
@@ -50,12 +52,14 @@ var runCmd = &cobra.Command{
 		}
 		client := api.NewClient()
 		path := fmt.Sprintf("/projects/%s/secrets?environment=%s", projectID, url.QueryEscape(targetEnv))
+		ctx, cancel := context.WithTimeout(context.Background(), resolveCLINetworkTimeout(runTimeoutFlag))
+		defer cancel()
 
 		var secretsResp SecretsResponse
 		var envSecrets []offlinecache.Secret
 		loader := ui.NewLoader(ui.LoaderThemeFetch, fmt.Sprintf("VaultPulse preparing runtime secrets (%s)...", targetEnv))
 		loader.Start()
-		respBytes, err := client.GetWithTimeout(path, resolveRunTimeout(client.BaseURL))
+		respBytes, err := client.GetWithContext(ctx, path)
 		loader.Stop()
 
 		usedOfflineCache := false
@@ -165,25 +169,6 @@ func humanizeDuration(d time.Duration) string {
 	return d.Round(time.Minute).String()
 }
 
-func resolveRunTimeout(baseURL string) time.Duration {
-	defaultSeconds := 10
-	if isLocalBaseURL(baseURL) {
-		defaultSeconds = 20
-	}
-
-	raw := strings.TrimSpace(os.Getenv("ENVAULT_RUN_TIMEOUT_SECONDS"))
-	if raw == "" {
-		return time.Duration(defaultSeconds) * time.Second
-	}
-
-	seconds, err := strconv.Atoi(raw)
-	if err != nil || seconds <= 0 {
-		return time.Duration(defaultSeconds) * time.Second
-	}
-
-	return time.Duration(seconds) * time.Second
-}
-
 func isLocalBaseURL(baseURL string) bool {
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -221,4 +206,5 @@ func isLikelyDevCommand(runTarget string, runArgs []string) bool {
 func init() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().StringVarP(&projectFlag, "project", "p", "", "Project ID")
+	runCmd.Flags().DurationVar(&runTimeoutFlag, "timeout", 0, "Maximum duration for API retry/wait behavior (e.g. 30s, 2m). Overrides ENVAULT_RETRY_MAX_DURATION.")
 }
