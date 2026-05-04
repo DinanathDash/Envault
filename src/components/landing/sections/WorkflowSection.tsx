@@ -1,4 +1,4 @@
-import { Database, Shield, Users } from "lucide-react";
+import { Database, Terminal, Users } from "lucide-react";
 import { AnimatedStat } from "@/components/landing/ui/AnimatedStat";
 import { AnimatedWorkflow } from "@/components/landing/animations/AnimatedWorkflow";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
@@ -22,12 +22,12 @@ const workflowSteps = [
     icon: Users,
   },
   {
-    title: "Keep Access Auditable",
+    title: "Stress-Test The Guardrails",
     description:
-      "RBAC, approvals, and audit logs keep every pull and permission change accountable after onboarding is complete.",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-    icon: Shield,
+      "Design partners get free access to hammer CLI flows, GitHub JIT auto-provisioning, and HITL approval fencing with direct feedback loops to our team.",
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
+    icon: Terminal,
   },
 ];
 
@@ -85,10 +85,10 @@ export function WorkflowSection() {
         {/* Bottom Stats Row */}
         <SlideUp delay={0.6} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Enterprise Teams", value: "10+" },
-            { label: "Secrets Managed", value: "1K+" },
-            { label: "Global Deployments", value: "5K+" },
-            { label: "Uptime SLA", value: "99.9%" },
+            { label: "Onboarding Flow", value: "10s" },
+            { label: "Core Commands", value: "2" },
+            { label: "Design Partners", value: "5-10" },
+            { label: "Program Cost", value: "$0" },
           ].map((stat, index) => (
             <div
               key={index}

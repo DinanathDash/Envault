@@ -1,11 +1,11 @@
 ---
 title: Security
-description: Security architecture and protection mechanisms
+description: Security architecture behind Envault's fast onboarding workflow
 ---
 
-## Enterprise-Grade Security Architecture
+## Security Architecture
 
-Envault provides bank-grade security to ensure your team's sensitive data is protected at rest, in transit, and during execution.
+Envault is built for fast developer onboarding without sacrificing sane security defaults. The goal is simple: teammates run `envault login`, run `envault pull`, and get the right variables without sharing raw `.env` files.
 
 ## Envelope Encryption & Client-Side Encryption (CSE)
 
@@ -26,7 +26,7 @@ All communication between the Envault CLI, SDKs, MCP Agents, and the Core Server
 ## Data Governance & Identity Control
 
 - **Row Level Security (RLS)**: Envault enforces access policies at the absolute lowest database tier. Even if a backend application flaw occurs, the database engine physically prevents an unauthorized user from reading rows belonging to a project they are not a member of.
-- **Immutable Audit Logs**: Every critical action—mutating a secret, rotating a key, agent delegations, and permission changes—is permanently recorded in an append-only, immutable `audit_logs` ledger. Project Owners can review precisely who changed what, and when.
+- **Immutable Audit Logs**: Every critical action—mutating a secret, rotating a key, agent delegations, and permission changes—is recorded in append-only `audit_logs` entries. Project Owners can review who changed what and when.
 - **Identity Snapshots**: If a team member leaves the company and their account is deleted, Envault preserves static, non-identifying metadata snapshots on the secrets they modified. This ensures your project's historical audit trail remains intact and readable.
 - **Ownership Handshakes**: Transferring project ownership requires a deliberate, two-step cryptographic handshake. The recipient must actively accept the transfer, preventing forced liability or unauthorized delegation.
 
@@ -52,7 +52,7 @@ Envault uses a hybrid model: the cloud core is proprietary, while the agent exec
 - `mcp-server/` is MIT-licensed and fully auditable.
 - `src/lib/sdk/` is MIT-licensed and fully auditable.
 
-This architecture is a direct DX advantage for security-conscious teams:
+This architecture is a direct DX advantage for teams that want verifiable behavior:
 
 - You can independently audit the exact HITL interception implementation.
 - You can inspect short-lived delegated `envault_agt_` JWT handling in code.

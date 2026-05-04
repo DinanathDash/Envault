@@ -15,12 +15,12 @@ export const comparisonPages: SeoPageData[] = [
   {
     slug: 'envault-vs-doppler',
     title: 'Envault vs Doppler | The Developer-First Secrets Manager',
-    metaDescription: 'Compare Envault and Doppler. See why developers are switching to Envault for lightweight, secure environment variable management without enterprise bloat.',
-    h1: 'Envault vs. Doppler: Skip the Enterprise Bloat',
+    metaDescription: 'Compare Envault and Doppler. See why developers are switching to Envault for fast onboarding and lightweight environment variable workflows.',
+    h1: 'Envault vs. Doppler: Built For Fast Teams',
     contentBlocks: [
       {
-        heading: 'Built for Developers, Not Procurement Teams',
-        content: 'Doppler forces you into complex project hierarchies and pricing models designed for massive enterprises, rapidly scaling up per-user costs. Envault is built strictly for the developer experience. We provide the exact CLI tooling and workflow automation your team needs, natively integrated into your current stack, without charging a premium for features you will never use.'
+        heading: 'Built for Developers, Not Procurement Loops',
+        content: 'Doppler can push teams into larger process overhead and layered project structures. Envault stays focused on developer flow: fast CLI onboarding, direct workflow automation, and simple project mapping that fits startup and agency teams.'
       },
       {
         heading: 'Zero-Knowledge Security vs Cloud Trust',
@@ -70,7 +70,7 @@ export const featurePages: SeoPageData[] = [
     h1: 'Secure Environment Variable Storage',
     contentBlocks: [
       {
-        heading: 'Military-Grade Client-Side Encryption (CSE)',
+        heading: 'Client-Side Encryption (CSE)',
         content: 'Stop sharing vulnerable .env files over Slack or email. Envault ensures your environment variables are encrypted at rest and in transit using AES-256-GCM with strict client-side decryption boundaries.'
       },
       {
@@ -99,7 +99,7 @@ export const featurePages: SeoPageData[] = [
       },
       {
         heading: 'Comprehensive Audit Logs',
-        content: 'Maintain complete visibility over your organization\'s security posture. Envault logs every secret access, modification, and sync event. Track down precisely when a secret was rotated and by whom, satisfying complex compliance requirements with ease.'
+        content: 'Track every secret access, modification, and sync event so your team can debug incidents quickly and understand exactly what changed and when.'
       }
     ]
   },

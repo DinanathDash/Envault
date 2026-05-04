@@ -9,12 +9,12 @@ const highlights = [
   {
     icon: Boxes,
     title: "Build With CLI, SDK, And MCP",
-    desc: "Use Envault from terminal workflows, TypeScript services, and agent ecosystems without changing your core secret model.",
+    desc: "Use one secret model across terminal workflows, TypeScript services, and AI agent tooling.",
   },
   {
     icon: Bot,
-    title: "Open-Source Agent Execution Layer",
-    desc: "Envault's core cloud is proprietary, but the editor-facing execution path is open under MIT so teams can inspect exactly what runs locally.",
+    title: "Open Agent Runtime Surface",
+    desc: "The cloud control plane is proprietary, but agent execution code is MIT-licensed so teams can inspect runtime behavior directly.",
   },
   {
     icon: PackageCheck,
@@ -69,7 +69,7 @@ export async function PlatformHighlights() {
       <div className="container px-4 md:px-6 space-y-8">
         <SlideUp className="text-center mb-10 md:mb-14 space-y-4">
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold tracking-tight leading-[1.1] text-void dark:text-bone">
-            Built for modern secret operations.
+            Built for fast onboarding loops.
           </h2>
           <p className="max-w-[780px] mx-auto font-mono text-sm uppercase tracking-wider text-void/60 dark:text-bone/60">
             CORE CAPABILITIES USERS SHOULD KNOW BEFORE READING THE DOCS

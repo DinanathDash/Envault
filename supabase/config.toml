@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.rotate-keys]
 verify_jwt = false
+
+[auth]
+password_requirements = "lower_upper_letters_digits_symbols"

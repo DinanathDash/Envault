@@ -25,7 +25,7 @@ const testimonials = [
     role: "Site Reliability Engineer",
     company: "Vantage",
     content:
-      "We outgrew GitHub Secrets, and AWS Secrets Manager was too clunky for our frontend guys. Envault sits nicely in the middle. Deducting a star because the RBAC needs more granular permissions for heavy enterprise use, but for our scale, it works perfectly.",
+      "We outgrew GitHub Secrets, and AWS Secrets Manager was too clunky for our frontend team. Envault sits in the middle and gets out of the way.",
     rating: 4,
   },
   {
@@ -76,11 +76,11 @@ export function Testimonials() {
       <div className="container px-4 md:px-6">
         <SlideUp className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold mb-4">
-            Trusted by Developers Worldwide
+            Teams Replacing `.env` Slack Threads
           </h2>
           <p className="text-lg font-mono text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of developers who have simplified their secret
-            management with Envault
+            Direct feedback from developers using Envault in day-to-day shipping
+            workflows
           </p>
         </SlideUp>
 

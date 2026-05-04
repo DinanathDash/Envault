@@ -5,11 +5,13 @@ import { WorkflowSection } from "@/components/landing/sections/WorkflowSection";
 import { CliSection } from "@/components/landing/sections/CliSection";
 import { RegMark } from "@/components/landing/ui/RegMark";
 import { Testimonials } from "@/components/landing/sections/Testimonials";
+import { DesignPartnerCta } from "@/components/landing/sections/DesignPartnerCta";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Envault - Secure Environment Variable Management",
-  description: "End-to-end encrypted secret manager for your entire team.",
+  title: "Envault - 10-Second Developer Onboarding For Secrets",
+  description:
+    "Stop sharing .env files. Run envault login, then envault pull, and start coding.",
   alternates: {
     canonical: "/",
   },
@@ -32,6 +34,7 @@ export default async function LandingPage() {
         <PlatformHighlights />
         <Features />
         <Testimonials />
+        <DesignPartnerCta />
         <RegMark position="bottom-left" />
         <RegMark position="bottom-right" />
       </main>
