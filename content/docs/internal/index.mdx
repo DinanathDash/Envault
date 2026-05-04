@@ -15,7 +15,7 @@ Here we isolate the underlying machinery away from the public user-facing platfo
 The Envault repository is a monorepo consisting of:
 
 - **`src/` and `app/`**: The core Next.js web application encompassing the marketing pages, dashboard, project management, and the documentation UI itself.
-- **`cli-go/`**: The robust, zero-dependency Go implementation of the Envault CLI. Handles E2E encryption and API interactions.
+- **`cli-go/`**: The robust, zero-dependency Go implementation of the Envault CLI. Handles Client-Side Encryption (CSE) and API interactions.
 - **`mcp-server/`**: Connects Envault with Model Context Protocol compatible AI agents (like Claude Desktop and Cursor), enabling AI to directly pull/push secrets and propose code changes.
 - **`cli-wrapper/`**: An npm wrapper for distributing the cross-platform CLI simply to Node JS users.
 - **`supabase/`**: Defines the database schema, PostgREST policies (RLS), edge functions, and realtime triggers.
@@ -31,4 +31,4 @@ Before you begin contributing, ensure you have the following installed on your w
 
 ## Next Steps
 
-Read the [Architecture](/docs/internal/architecture) guide to understand how AES-256 E2E encryption functions, and review the [Local Setup](/docs/internal/local-setup) to spin up the local web and backend services.
+Read the [Architecture](/docs/internal/architecture) guide to understand how AES-256 Client-Side Encryption (CSE) functions, and review the [Local Setup](/docs/internal/local-setup) to spin up the local web and backend services.

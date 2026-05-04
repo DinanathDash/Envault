@@ -63,9 +63,8 @@ export function Footer({ user }: FooterProps) {
               </span>
             </div>
             <p className="font-mono text-sm text-muted-foreground mb-4 max-w-md">
-              Secure, zero-knowledge environment variable management for modern
-              development teams. Built with military-grade encryption and
-              developer-first design.
+              Secure environment variable management for modern development
+              teams. Built with true client-side decryption.
             </p>
             <div className="flex gap-4">
               <Link

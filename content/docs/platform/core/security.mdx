@@ -13,7 +13,7 @@ Envault implements a dual **Envelope Encryption & Client-Side Encryption** archi
 
 - **Client-Side Encryption (CSE)**: During `envault deploy` and `envault pull`, the Go CLI is responsible for encryption and decryption. This ensures the Node.js API server never receives or processes your plaintext `.env` data. The cryptographic AES-256-GCM operations happen natively inside the CLI.
 - **Data Encryption Keys (DEK)**: Every project has a unique, cryptographically secure Data Key. When your team saves an environment variable, it is immediately encrypted using this DEK via **AES-256-GCM** encryption.
-- **Master Encryption Key (MEK)**: The Data Keys themselves are then encrypted using a global Master Encryption Key. The vault acts as a zero-knowledge store; it cannot natively decrypt your variables without the active injection of the Master Key at runtime.
+- **Master Encryption Key (MEK)**: The Data Keys themselves are then encrypted using a global Master Encryption Key. We hand your CLI the locked box and the key, but the server never sees your plaintext secrets.
 
 ### Key Rotation
 

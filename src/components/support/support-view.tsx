@@ -36,12 +36,12 @@ const faqs = [
   {
     question: "What is Envault?",
     answer:
-      "Envault is a secure, zero-knowledge environment variable management platform designed for modern development teams. It allows you to safely store, share, and sync your secrets across your team and infrastructure.",
+      "Envault is a secure environment variable management platform designed for modern development teams. It allows you to safely store, share, and sync your secrets across your team and infrastructure.",
   },
   {
     question: "How secure is my data?",
     answer:
-      "Extremely secure. Envault employs end-to-end encryption using AES-256-GCM. Your secrets are encrypted client-side before ever reaching our servers, meaning even we cannot read your environment variables.",
+      "Extremely secure. Envault employs AES-256-GCM with Client-Side Encryption (CSE) for secret payloads. Your secrets are decrypted locally, and our servers never process plaintext environment variables.",
   },
   {
     question: "Can I run or self-host Envault from this repository?",
