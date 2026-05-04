@@ -57,7 +57,7 @@ const testimonials = [
     role: "DevOps Engineer",
     company: "Shift",
     content:
-      "Was skeptical about moving away from Doppler. Envault's UI is cleaner and the zero-knowledge encryption actually checks out. We had a weird edge case with Docker Compose caching, but their support sorted it out in a day. Solid tool.",
+      "Was skeptical about moving away from Doppler. Envault's UI is cleaner and their client-side decryption model actually checks out. We had a weird edge case with Docker Compose caching, but their support sorted it out in a day. Solid tool.",
     rating: 5,
   },
   {

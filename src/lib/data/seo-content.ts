@@ -24,7 +24,7 @@ export const comparisonPages: SeoPageData[] = [
       },
       {
         heading: 'Zero-Knowledge Security vs Cloud Trust',
-        content: 'Doppler operates as a centralized cloud service where you trust their infrastructure with your plaintext secrets. Envault embraces a zero-knowledge architecture. Your environment variables are encrypted end-to-end on your device before they ever reach our servers, guaranteeing that no third party—not even us—can ever access your production credentials.'
+        content: 'Doppler operates as a centralized cloud service where you trust their infrastructure with your plaintext secrets. Envault uses envelope encryption with strict client-side decryption boundaries for secret payloads. Our servers never process plaintext environment variables.'
       },
       {
         heading: 'Native AI Agent Support',
@@ -39,12 +39,12 @@ export const comparisonPages: SeoPageData[] = [
   {
     slug: 'envault-vs-infisical',
     title: 'Envault vs Infisical | Seamless Next.js Secrets Management',
-    metaDescription: 'Evaluate Envault against Infisical. Discover how Envault provides superior Vercel integration and E2E encryption for modern engineering teams.',
+    metaDescription: 'Evaluate Envault against Infisical. Discover how Envault provides superior Vercel integration and AES-256-GCM encryption with strict client-side decryption boundaries.',
     h1: 'Envault vs. Infisical: Zero-Friction Secrets',
     contentBlocks: [
       {
-        heading: 'Zero-Knowledge Architecture',
-        content: 'Envault ensures your environment variables are encrypted at rest and in transit. Only your team has the keys to decrypt them, ensuring a zero-knowledge architecture where not even our servers can read your production credentials. With Infisical, complex self-hosting is often required to achieve true data sovereignty.'
+        heading: 'Client-Side Encryption Architecture',
+        content: 'Envault ensures your environment variables are encrypted at rest and in transit. AES-256-GCM encryption with strict client-side decryption boundaries keeps plaintext secret values out of server-side processing. With Infisical, complex self-hosting is often required to achieve true data sovereignty.'
       },
       {
         heading: 'Operational Simplicity over Self-Hosting Complexities',
@@ -66,12 +66,12 @@ export const featurePages: SeoPageData[] = [
   {
     slug: 'environment-variable-storage',
     title: 'Secure Environment Variable Storage | Envault',
-    metaDescription: 'Store, sync, and inject your environment variables securely across your entire team. End-to-end encryption with zero-knowledge architecture.',
+    metaDescription: 'Store, sync, and inject your environment variables securely across your entire team. AES-256-GCM encryption with client-side decryption.',
     h1: 'Secure Environment Variable Storage',
     contentBlocks: [
       {
-        heading: 'Military-Grade End-to-End Encryption',
-        content: 'Stop sharing vulnerable .env files over Slack or email. Envault ensures your environment variables are encrypted at rest and in transit using AES-256-GCM. Your secrets are encrypted locally on your machine before transmission—only your team holds the decryption keys, ensuring a true zero-knowledge architecture.'
+        heading: 'Military-Grade Client-Side Encryption (CSE)',
+        content: 'Stop sharing vulnerable .env files over Slack or email. Envault ensures your environment variables are encrypted at rest and in transit using AES-256-GCM with strict client-side decryption boundaries.'
       },
       {
         heading: 'Instant Cross-Team Synchronization',

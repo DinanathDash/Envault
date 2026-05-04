@@ -96,10 +96,9 @@ export default async function PrivacyPage() {
         <div className="bg-accent/30 border border-border/50 rounded-lg p-6 mb-4">
           <p className="text-muted-foreground leading-relaxed">
             The security of your data is important to us. Envault employs
-            end-to-end encryption for your stored environment variables. Your
-            secrets are encrypted on the client-side before being transmitted to
-            our servers (if applicable) or stored securely using our
-            provider&apos;s infrastructure.
+            encryption for your stored environment variables. Your secrets are
+            decrypted locally on your machine. Our servers never process your
+            plaintext environment variables.
           </p>
         </div>
         <p className="text-muted-foreground leading-relaxed mb-4">

@@ -105,7 +105,7 @@ Built for terminal-first onboarding and daily developer workflows.
 Security remains built in, but now as the trust layer behind fast onboarding.
 
 - **AES-256-GCM Encryption**: Utilizing a robust envelope encryption strategy.
-- **Zero-Knowledge Architecture**: Secrets are decrypted only in memory when requested.
+- **Client-Side Decryption Boundary**: Secrets are decrypted locally in the CLI, and the server never processes plaintext environment variables.
 - **Automatic Key Rotation**: Rotate keys seamlessly without downtime.
 - **Passkey Support**: Passwordless, biometric login powered by WebAuthn.
 - **Team Collaboration**: Granular permissions (Owner, Editor, Viewer) for every member.
