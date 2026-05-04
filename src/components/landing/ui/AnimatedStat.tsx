@@ -18,8 +18,14 @@ export function AnimatedStat({ value }: AnimatedStatProps) {
     }
   }, [inView, isInView]);
 
-  const numericValue = parseFloat(value.replace(/[^0-9.]/g, ""));
-  const suffix = value.replace(/[0-9.]/g, "");
+  const trimmedValue = value.trim();
+  const animatableMatch = trimmedValue.match(
+    /^([^0-9]*)([0-9]+(?:\.[0-9]+)?)([^0-9]*)$/,
+  );
+  const isAnimatable = Boolean(animatableMatch) && !trimmedValue.includes("-");
+  const prefix = animatableMatch?.[1] ?? "";
+  const numericValue = animatableMatch ? parseFloat(animatableMatch[2]) : 0;
+  const suffix = animatableMatch?.[3] ?? "";
 
   const spring = useSpring(0, {
     damping: 50,
@@ -28,14 +34,23 @@ export function AnimatedStat({ value }: AnimatedStatProps) {
   });
 
   useEffect(() => {
-    if (isInView) {
+    if (isInView && isAnimatable) {
       spring.set(numericValue);
     }
-  }, [isInView, numericValue, spring]);
+  }, [isInView, isAnimatable, numericValue, spring]);
 
-  const [displayValue, setDisplayValue] = useState("0");
+  const [displayValue, setDisplayValue] = useState(isAnimatable ? "0" : value);
 
   useEffect(() => {
+    if (!isAnimatable) {
+      setDisplayValue(value);
+    }
+  }, [isAnimatable, value]);
+
+  useEffect(() => {
+    if (!isAnimatable) {
+      return;
+    }
     const unsubscribe = spring.on("change", (latest) => {
       if (value.includes(".")) {
         setDisplayValue(latest.toFixed(1));
@@ -44,15 +59,14 @@ export function AnimatedStat({ value }: AnimatedStatProps) {
       }
     });
     return unsubscribe;
-  }, [spring, value]);
+  }, [isAnimatable, spring, value]);
 
   return (
     <div
       ref={ref}
       className="font-mono text-3xl font-bold text-foreground mb-2"
     >
-      {displayValue}
-      {suffix}
+      {isAnimatable ? `${prefix}${displayValue}${suffix}` : displayValue}
     </div>
   );
 }

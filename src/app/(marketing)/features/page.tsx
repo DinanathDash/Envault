@@ -3,7 +3,8 @@ import { featurePages } from "@/lib/data/seo-content";
 
 export const metadata: Metadata = {
   title: "Features | Envault",
-  description: "Explore the powerful features of Envault. End-to-end encryption, seamless Vercel syncing, and team secrets management.",
+  description:
+    "Developer-first secret workflows built for fast onboarding and clean terminal flows.",
 };
 
 export default function FeaturesPage() {
@@ -15,7 +16,8 @@ export default function FeaturesPage() {
             Features
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
-            Everything you need to manage environment variables securely and efficiently. Built for modern engineering teams.
+            Fast terminal-first workflows for teams tired of manually sharing
+            `.env` files.
           </p>
         </div>
         

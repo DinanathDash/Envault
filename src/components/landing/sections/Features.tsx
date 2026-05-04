@@ -8,7 +8,7 @@ const features = [
     title: "END-TO-END ENCRYPTION",
     value: "AES-256-GCM",
     description:
-      "Your secrets are encrypted before they leave your device using military-grade encryption.",
+      "Secrets are encrypted before they leave your machine, then decrypted locally in CLI workflows.",
     icon: Lock,
   },
   {
@@ -16,7 +16,7 @@ const features = [
     title: "PASSWORDLESS AUTH",
     value: "PASSKEY + OAUTH",
     description:
-      "Sign in securely with WebAuthn passkeys and provider OAuth, reducing credential friction for daily access.",
+      "Use passkeys and OAuth so teammates can authenticate quickly without password resets or token juggling.",
     icon: Fingerprint,
   },
   {
@@ -24,7 +24,7 @@ const features = [
     title: "GITHUB-INTEGRATED ACCESS",
     value: "MULTI-ACCOUNT READY",
     description:
-      "Connect repositories, support multiple GitHub accounts, and streamline collaborator access with fewer manual steps.",
+      "Link one repo and let GitHub collaborator status drive JIT access during `envault pull`.",
     icon: Github,
   },
   {
@@ -32,7 +32,7 @@ const features = [
     title: "ENVIRONMENT-SCOPED PERMISSIONS",
     value: "LEAST PRIVILEGE",
     description:
-      "Grant access per environment with owner/editor/viewer roles so teams can ship fast without broad secret exposure.",
+      "Gate read/write access by environment so teams move fast without exposing every key to every person.",
     icon: Users,
   },
   {
@@ -40,7 +40,7 @@ const features = [
     title: "REAL-TIME SYNC RELIABILITY",
     value: "HYBRID REFRESH",
     description:
-      "Hybrid realtime + focus-aware refresh keeps secret state fresh across dashboard, editor, and audit workflows.",
+      "Realtime plus focus-aware refresh keeps your local and dashboard views in sync while you ship.",
     icon: Activity,
   },
   {
@@ -48,7 +48,7 @@ const features = [
     title: "ACCOUNT LIFECYCLE SAFETY",
     value: "SOFT DELETE + RECOVERY",
     description:
-      "7-day recovery windows, controlled purge flow, and identity continuity protect teams during account transitions.",
+      "Recovery windows and controlled purge flows help teams recover from bad deletes without chaos.",
     icon: UserCheck,
   },
 ];
@@ -59,10 +59,10 @@ export function Features() {
       <div className="container px-4 md:px-6">
         <SlideUp className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-6xl font-serif font-bold tracking-tight text-void dark:text-bone">
-            Trust Layer After The Speed
+            Built For Fast Daily Use
           </h2>
           <p className="max-w-[700px] mx-auto font-mono text-sm uppercase tracking-wider text-void/60 dark:text-bone/60">
-            AES-256-GCM / PASSKEYS / RBAC / AUDITABILITY
+            LOGIN / PULL / RUN / SHIP
           </p>
         </SlideUp>
 

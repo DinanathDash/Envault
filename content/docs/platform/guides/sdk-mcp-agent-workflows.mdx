@@ -1,6 +1,6 @@
 ---
 title: MCP Advanced Setup & Reference
-description: Manual MCP configuration, tools reference, and security controls for advanced Envault agent workflows.
+description: Manual MCP configuration and runtime controls for advanced Envault agent workflows.
 ---
 
 import { Step, Steps } from "fumadocs-ui/components/steps";
@@ -18,7 +18,7 @@ Envault's cloud platform is proprietary. The runtime surfaces that execute agent
 - `mcp-server/` is fully open source under MIT.
 - `src/lib/sdk/` is fully open source under MIT.
 
-This gives engineering teams a concrete control surface to audit:
+This gives engineering teams a concrete control surface to verify:
 
 - The HITL interceptor path for mutation requests.
 - The delegated short-lived token architecture (`envault_agt_` JWT lifecycle).
@@ -26,6 +26,10 @@ This gives engineering teams a concrete control surface to audit:
 
 <Callout type="info">
   This page is intentionally advanced. It complements the quickstart guide and avoids duplicating it.
+</Callout>
+
+<Callout type="info">
+  Design partner invite: we are onboarding 5-10 startup/agencies for free to stress-test CLI behavior, GitHub JIT access provisioning, and HITL fencing.
 </Callout>
 
 ---
@@ -135,8 +139,8 @@ When an agent requests a mutation, Envault executes the same approval sequence b
 The delegated token path is also verifiable in source: agent runtime calls only proceed with scoped, short-lived `envault_agt_` credentials, and mutation execution remains gated behind explicit HITL approval.
 
 <Callout type="info">
-  All agent requests, approvals, and rejections are permanently recorded in your
-  Project Audit Logs to ensure total compliance.
+  All agent requests, approvals, and rejections are recorded in your Project
+  Audit Logs for traceability and debugging.
 </Callout>
 
 ## 3. MCP Tools Reference

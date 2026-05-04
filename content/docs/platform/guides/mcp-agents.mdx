@@ -21,6 +21,10 @@ Why this is a DX win:
 - You can inspect delegated token handling end-to-end, including the short-lived `envault_agt_` JWT flow.
 - You can verify in code that agent mutation calls are routed into approval-first behavior, not silent file/database mutation.
 
+<Callout type="info">
+  We are accepting 5-10 free design partners to stress-test these paths. Try to break CLI flows, GitHub JIT onboarding, and HITL fencing, then send us repro steps.
+</Callout>
+
 When you run `envault mcp install`, Envault provisions a **project-scoped delegated JWT** (`envault_agt_`) with a **1-hour lifetime**. The agent gets only scoped access for that project, not unrestricted account-wide access.
 
 <Callout type="info">

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Timer, ArrowRight, ShieldCheck } from "lucide-react";
+import { Timer, ArrowRight, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InstallTerminal } from "@/components/landing/ui/install-terminal";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
@@ -19,7 +19,7 @@ export function Hero() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-serif font-bold tracking-tight leading-[0.95] text-foreground">
             Envault.
             <span className="sr-only">
-              Secure Environment Variable Management
+              Fast developer onboarding for environment variables
             </span>
           </h1>
 
@@ -28,7 +28,7 @@ export function Hero() {
             <br />
             RUN `ENVAULT LOGIN` THEN `ENVAULT PULL`.
             <br />
-            GITHUB JIT GRANTS ACCESS FROM REPO MEMBERSHIP.
+            ONBOARD NEW DEVS IN ABOUT 10 SECONDS.
           </p>
 
           {/* Tabbed Installation UI */}
@@ -99,24 +99,21 @@ export function Hero() {
             </Link>
           </div>
 
-          {/* Social Proof & Metrics */}
           <div className="flex flex-col sm:flex-row items-center gap-6 mt-8">
             <div className="text-left">
               <p className="text-xs font-mono text-muted-foreground mb-1">
-                TRUSTED BY DEVELOPERS
+                DESIGN PARTNER PROGRAM
               </p>
               <p className="text-sm font-medium">
-                &quot;Game-changer for our team&apos;s secret management!&quot;
-              </p>
-              <p className="text-xs text-muted-foreground">
-                - Senior Dev at TechCorp
+                FREE TIER FOR AGENCIES AND STARTUPS THAT WANT TO STRESS TEST
+                ENVAULT.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 text-primary" />
-            <span>Trust layer: AES-256-GCM, passkeys, and RBAC</span>
+            <Wrench className="w-4 h-4 text-primary" />
+            <span>Break our CLI. Probe GitHub JIT. Try to bypass HITL.</span>
           </div>
         </SlideUp>
         {/* Right column reserved for 3D model */}
