@@ -11,6 +11,19 @@ Use this page if you need **manual MCP wiring** or an explicit reference for too
 
 For the direct local setup flow (`envault mcp install`) and the delegated `envault_agt_` + HITL walkthrough, use [Local AI Agents (Claude & Cursor)](/docs/platform/guides/mcp-agents).
 
+## Hybrid model: proprietary core, open execution layer
+
+Envault's cloud platform is proprietary. The runtime surfaces that execute agent actions are intentionally open:
+
+- `mcp-server/` is fully open source under MIT.
+- `src/lib/sdk/` is fully open source under MIT.
+
+This gives engineering teams a concrete control surface to audit:
+
+- The HITL interceptor path for mutation requests.
+- The delegated short-lived token architecture (`envault_agt_` JWT lifecycle).
+- The approval-first sequencing that prevents agents from bypassing human approval.
+
 <Callout type="info">
   This page is intentionally advanced. It complements the quickstart guide and avoids duplicating it.
 </Callout>
@@ -118,6 +131,8 @@ When an agent requests a mutation, Envault executes the same approval sequence b
    **Note:** The `approve` command now provides a cryptographic visual diff directly in your terminal, outlining Additions (+), Deletions (-), and Modifications (~). You must be in an interactive terminal to approve the change, otherwise it fails to prevent blind execution.
 
 5. **Execution:** Once approved, the mutation is securely executed, and the agent proceeds with its task.
+
+The delegated token path is also verifiable in source: agent runtime calls only proceed with scoped, short-lived `envault_agt_` credentials, and mutation execution remains gated behind explicit HITL approval.
 
 <Callout type="info">
   All agent requests, approvals, and rejections are permanently recorded in your

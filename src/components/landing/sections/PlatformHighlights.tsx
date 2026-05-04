@@ -13,13 +13,13 @@ const highlights = [
   },
   {
     icon: Bot,
-    title: "Approve Agent Actions In Real Time",
-    desc: "Keep human-in-the-loop control for sensitive operations while still enabling fast machine-assisted workflows.",
+    title: "Open-Source Agent Execution Layer",
+    desc: "Envault's core cloud is proprietary, but the editor-facing execution path is open under MIT so teams can inspect exactly what runs locally.",
   },
   {
     icon: PackageCheck,
-    title: "Versioned Releases For Stable Integration",
-    desc: "SDK and MCP are shipped as independently versioned packages so teams can adopt updates intentionally.",
+    title: "Audit HITL + Delegated JWT Flow",
+    desc: "The MIT-licensed MCP and SDK code lets you verify envault_agt_ short-lived token gating and approval-first mutation behavior.",
   },
 ];
 

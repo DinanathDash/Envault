@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-03T19:20:41.815Z",
+  "generatedAt": "2026-05-04T13:49:47.960Z",
   "sourceDir": "cli-go/cmd",
   "commands": [
     {
@@ -307,6 +307,11 @@
           "name": "file",
           "usage": "Local .env file path override",
           "persistent": false
+        },
+        {
+          "name": "timeout",
+          "usage": "Maximum duration for API retry/wait behavior (e.g. 30s, 2m). Overrides ENVAULT_RETRY_MAX_DURATION.",
+          "persistent": false
         }
       ],
       "parentVar": "rootCmd",
@@ -323,6 +328,11 @@
           "name": "project",
           "short": "p",
           "usage": "Project ID",
+          "persistent": false
+        },
+        {
+          "name": "timeout",
+          "usage": "Maximum duration for API retry/wait behavior (e.g. 30s, 2m). Overrides ENVAULT_RETRY_MAX_DURATION.",
           "persistent": false
         }
       ],
