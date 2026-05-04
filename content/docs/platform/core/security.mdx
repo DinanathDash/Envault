@@ -44,3 +44,16 @@ When utilizing Envault's SDK or MCP for automated AI workflows, multiple securit
 - **Project Isolation**: Agents are strictly fenced to the project explicitly defined in your `.vscode/mcp.json` or SDK initialization script.
 - **Human-in-the-Loop (HITL)**: Crucial mutations (e.g., an AI attempting to overwrite your production `STRIPE_SECRET_KEY`) require explicit approval from a human Project Owner or Editor via the UI or CLI `approve` command before execution.
 - **Kill Switches**: You maintain ultimate control. Agent integration can be instantly severed via your user Security Settings (global) or specific Project Settings (isolated).
+
+## Verifiable Agent Control Surface (Hybrid Open Source)
+
+Envault uses a hybrid model: the cloud core is proprietary, while the agent execution layer is open for inspection.
+
+- `mcp-server/` is MIT-licensed and fully auditable.
+- `src/lib/sdk/` is MIT-licensed and fully auditable.
+
+This architecture is a direct DX advantage for security-conscious teams:
+
+- You can independently audit the exact HITL interception implementation.
+- You can inspect short-lived delegated `envault_agt_` JWT handling in code.
+- You can verify that mutation execution remains approval-gated and cannot bypass human controls through opaque runtime behavior.

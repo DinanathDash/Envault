@@ -28,7 +28,7 @@ export const comparisonPages: SeoPageData[] = [
       },
       {
         heading: 'Native AI Agent Support',
-        content: 'The future of development involves AI agents interacting with your codebase. Envault is built with native Model Context Protocol (MCP) server support, allowing autonomous agents to securely access necessary environment context without exposing raw keys. Doppler leaves you building manual workarounds.'
+        content: 'Envault ships native MCP support with a hybrid open-source execution layer. The cloud core is proprietary, but the MIT-licensed mcp-server/ and src/lib/sdk/ paths are fully auditable, including the HITL interceptor and short-lived envault_agt_ delegated JWT flow. Your team gets AI speed with verifiable human control.'
       },
       {
         heading: 'Lightweight and Blazing Fast',
