@@ -10,6 +10,26 @@ All notable changes to Envault are documented here.
 
 ---
 
+## 1.14.3 - 2026-05-07
+
+> Authors: Dinanath Dash (DinanathDash)
+
+Email Confirmation Hardening, Resend Throttling, and Onboarding Profile Completion.
+
+### Authentication & Email Confirmation
+
+- **Dedicated Confirmation Success State:** Added a dedicated email confirmation success state and updated auth routing behavior in `GlobalScene` for clearer post-confirmation UX.
+- **Confirmation Link TTL Guard:** Enforced confirmation link expiration validation in auth actions to prevent stale link acceptance.
+- **Rate-Limited Resend Flow:** Added resend throttling and cooldown safeguards in auth flows to reduce abuse and improve delivery reliability.
+
+### Onboarding & Profile Completion
+
+- **Profile Completion Flow:** Added a new `complete-profile` onboarding route with a dedicated profile completion form.
+- **Onboarding Completion Tracking:** Introduced backend/profile tracking for onboarding completion, including schema support for `onboarding_completed_at`.
+- **Auth Journey Integration:** Connected login and auth transitions to the new onboarding completion flow for first-time users.
+
+---
+
 ## 1.14.2 - 2026-05-04
 
 > Authors: Dinanath Dash (DinanathDash)
