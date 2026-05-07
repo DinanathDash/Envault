@@ -135,7 +135,7 @@ export function SystemStatusBanner({ show }: SystemStatusBannerProps) {
           <button
             onClick={handleDismiss}
             aria-label="Dismiss status banner"
-            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full p-1.5 text-foreground/35 hover:text-foreground/70 transition-colors duration-150"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex cursor-pointer items-center justify-center rounded-full p-1.5 text-foreground/35 hover:text-foreground/70 transition-colors duration-150"
           >
             <X className="size-3.5" />
           </button>

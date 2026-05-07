@@ -95,35 +95,33 @@ export function AuthForm() {
   // Inline notice for login errors that require user action (e.g. "check inbox")
   const [loginNotice, setLoginNotice] = React.useState<string | null>(null);
   const [lastUsedProvider, setLastUsedProvider] =
-    React.useState<AuthProvider | null>(() => {
-      // Lazy initializer runs once on the client — no effect needed.
-      try {
-        const cookieValue = toAuthProvider(
-          document.cookie
-            .split("; ")
-            .find((row) => row.startsWith(`${LAST_USED_AUTH_PROVIDER_COOKIE}=`))
-            ?.split("=")[1],
-        );
-        const savedFromStorage = toAuthProvider(
-          window.localStorage.getItem(LAST_USED_AUTH_PROVIDER_KEY),
-        );
-        // OAuth callback writes cookie after successful auth. Prefer it over stale local storage.
-        const savedProvider = cookieValue || savedFromStorage;
-        if (savedProvider && savedFromStorage !== savedProvider) {
-          window.localStorage.setItem(
-            LAST_USED_AUTH_PROVIDER_KEY,
-            savedProvider,
-          );
-        }
-        return savedProvider ?? null;
-      } catch {
-        // Ignore storage access errors (private mode, blocked storage, etc).
-        return null;
-      }
-    });
+    React.useState<AuthProvider | null>(null);
   const router = useRouter();
 
   const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    try {
+      const cookieValue = toAuthProvider(
+        document.cookie
+          .split("; ")
+          .find((row) => row.startsWith(`${LAST_USED_AUTH_PROVIDER_COOKIE}=`))
+          ?.split("=")[1],
+      );
+      const savedFromStorage = toAuthProvider(
+        window.localStorage.getItem(LAST_USED_AUTH_PROVIDER_KEY),
+      );
+      // OAuth callback writes cookie after successful auth. Prefer it over stale local storage.
+      const savedProvider = cookieValue || savedFromStorage;
+      if (savedProvider && savedFromStorage !== savedProvider) {
+        window.localStorage.setItem(LAST_USED_AUTH_PROVIDER_KEY, savedProvider);
+      }
+      setLastUsedProvider(savedProvider ?? null);
+    } catch {
+      // Ignore storage access errors (private mode, blocked storage, etc).
+      setLastUsedProvider(null);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (searchParams.get("accountDeletionScheduled")) {
@@ -427,7 +425,7 @@ export function AuthForm() {
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setEmailConfirmed(false)}
-                        className="mt-0.5 shrink-0 text-emerald-500/60 hover:text-emerald-500 transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-emerald-500/60 hover:text-emerald-500 transition-colors"
                       >
                         <svg
                           className="h-3.5 w-3.5"
@@ -480,7 +478,7 @@ export function AuthForm() {
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setPasswordUpdated(false)}
-                        className="mt-0.5 shrink-0 text-emerald-500/60 hover:text-emerald-500 transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-emerald-500/60 hover:text-emerald-500 transition-colors"
                       >
                         <svg
                           className="h-3.5 w-3.5"
@@ -507,8 +505,18 @@ export function AuthForm() {
                       className="mb-4 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3"
                     >
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20">
-                        <svg className="h-3 w-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <svg
+                          className="h-3 w-3 text-amber-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                          />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -523,10 +531,20 @@ export function AuthForm() {
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setDeletionScheduled(false)}
-                        className="mt-0.5 shrink-0 text-amber-500/60 hover:text-amber-500 transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-amber-500/60 hover:text-amber-500 transition-colors"
                       >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -540,8 +558,18 @@ export function AuthForm() {
                       className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3"
                     >
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
-                        <svg className="h-3 w-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        <svg
+                          className="h-3 w-3 text-emerald-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -556,10 +584,20 @@ export function AuthForm() {
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setAccountDeleted(false)}
-                        className="mt-0.5 shrink-0 text-emerald-500/60 hover:text-emerald-500 transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-emerald-500/60 hover:text-emerald-500 transition-colors"
                       >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -573,8 +611,18 @@ export function AuthForm() {
                       className="mb-4 flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3"
                     >
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-destructive/20">
-                        <svg className="h-3 w-3 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-3 w-3 text-destructive"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -582,17 +630,28 @@ export function AuthForm() {
                           Link expired or invalid
                         </p>
                         <p className="text-xs text-destructive/70 mt-0.5">
-                          Try signing up again or use Forgot Password to get a new link.
+                          Try signing up again or use Forgot Password to get a
+                          new link.
                         </p>
                       </div>
                       <button
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setAuthExpired(false)}
-                        className="mt-0.5 shrink-0 text-destructive/50 hover:text-destructive transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-destructive/50 hover:text-destructive transition-colors"
                       >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -606,8 +665,18 @@ export function AuthForm() {
                       className="mb-4 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3"
                     >
                       <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20">
-                        <svg className="h-3 w-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <svg
+                          className="h-3 w-3 text-amber-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -622,10 +691,20 @@ export function AuthForm() {
                         type="button"
                         aria-label="Dismiss"
                         onClick={() => setLoginNotice(null)}
-                        className="mt-0.5 shrink-0 text-amber-500/60 hover:text-amber-500 transition-colors"
+                        className="mt-0.5 shrink-0 cursor-pointer text-amber-500/60 hover:text-amber-500 transition-colors"
                       >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>

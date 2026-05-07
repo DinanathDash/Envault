@@ -21,6 +21,7 @@ export function GlobalScene() {
     pathname?.startsWith("/login") ||
     pathname?.startsWith("/register") ||
     pathname?.startsWith("/forgot-password") ||
+    pathname?.startsWith("/auth/complete-profile") ||
     pathname?.startsWith("/auth/update-password") ||
     pathname?.startsWith("/auth/device") ||
     pathname?.startsWith("/transfer") ||
