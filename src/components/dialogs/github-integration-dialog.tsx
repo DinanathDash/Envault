@@ -479,7 +479,7 @@ export function GitHubIntegrationDialog({
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       {searchQuery && (
                         <button
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
                           onClick={() => {
                             setSearchQuery("");
                             setSearchResults(null);

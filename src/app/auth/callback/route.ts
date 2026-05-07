@@ -29,7 +29,8 @@ function resolveAuthBaseUrl(request: Request, origin: string): string {
 }
 
 function normalizeNextPath(next: string | null): string {
-  if (!next || !next.startsWith("/")) return "/";
+  // Reject null, non-slash-prefixed, and protocol-relative URLs (//evil.com).
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
   return next;
 }
 

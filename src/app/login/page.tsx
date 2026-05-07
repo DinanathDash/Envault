@@ -3,6 +3,7 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { isProfileComplete } from "@/lib/auth/profile-completion";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -27,8 +28,25 @@ export default async function LoginPage(props: {
   } = await supabase.auth.getUser();
 
   if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, onboarding_completed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    const completed = isProfileComplete(
+      user,
+      profile?.username,
+      profile?.onboarding_completed_at,
+    );
+
     if (next && next.startsWith("/")) {
-      redirect(next);
+      if (completed) {
+        redirect(next);
+      }
+      redirect(`/auth/complete-profile?next=${encodeURIComponent(next)}`);
+    }
+    if (!completed) {
+      redirect("/auth/complete-profile");
     }
     redirect("/dashboard");
   }

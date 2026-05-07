@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyHmacSignature } from "@/lib/utils/hmac";
 import { shouldShowBanner } from "@/lib/system/banner-routes";
+import { isProfileComplete } from "@/lib/auth/profile-completion";
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -250,6 +251,46 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
+  }
+
+  if (user) {
+    const isCompleteProfileRoute = pathname === "/auth/complete-profile";
+    const shouldCheckProfile =
+      isProtectedRoute || isCompleteProfileRoute || pathname === "/login";
+
+    if (shouldCheckProfile) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username, onboarding_completed_at")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const completed = isProfileComplete(
+        user,
+        profile?.username,
+        profile?.onboarding_completed_at,
+      );
+
+      if (!completed && isProtectedRoute) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/auth/complete-profile";
+        const nextPath = `${pathname}${request.nextUrl.search || ""}`;
+        url.searchParams.set("next", nextPath);
+        return NextResponse.redirect(url);
+      }
+
+      if (completed && isCompleteProfileRoute) {
+        const url = request.nextUrl.clone();
+        const next = request.nextUrl.searchParams.get("next");
+        if (next && next.startsWith("/") && !next.startsWith("//")) {
+          url.pathname = next;
+          url.search = "";
+          return NextResponse.redirect(url);
+        }
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   // If user is authenticated and trying to access login page, redirect to dashboard
