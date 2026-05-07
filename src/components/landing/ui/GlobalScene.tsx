@@ -20,9 +20,12 @@ export function GlobalScene() {
   const isAuthPage =
     pathname?.startsWith("/login") ||
     pathname?.startsWith("/register") ||
-    pathname?.startsWith("/transfer") ||
+    pathname?.startsWith("/forgot-password") ||
+    pathname?.startsWith("/auth/update-password") ||
     pathname?.startsWith("/auth/device") ||
-    pathname?.startsWith("/approve");
+    pathname?.startsWith("/transfer") ||
+    pathname?.startsWith("/approve") ||
+    pathname?.startsWith("/join");
   const isLandingPage = pathname === "/";
 
   useEffect(() => {

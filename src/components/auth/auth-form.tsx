@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-import { Loader2, Lock, Command, Fingerprint } from "lucide-react";
+import { Loader2, Lock, Command, Fingerprint, Mail, ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { startAuthentication } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
@@ -74,6 +74,9 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isPasskeyLoading, setIsPasskeyLoading] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("login");
+  const [signupSuccess, setSignupSuccess] = React.useState(false);
+  const [signupEmail, setSignupEmail] = React.useState("");
+  const [emailConfirmed, setEmailConfirmed] = React.useState(false);
   const [lastUsedProvider, setLastUsedProvider] =
     React.useState<AuthProvider | null>(() => {
       // Lazy initializer runs once on the client — no effect needed.
@@ -123,11 +126,9 @@ export function AuthForm() {
       }, 100);
     }
     if (searchParams.get("emailConfirmed")) {
-      setTimeout(() => {
-        toast.success("Email confirmed! You can now sign in.");
-        // Clean up the URL
-        replaceWithTransition(router, "/login");
-      }, 100);
+      setEmailConfirmed(true);
+      // Clean up the URL without losing state
+      replaceWithTransition(router, "/login");
     }
     if (searchParams.get("authError") === "invalid_or_expired") {
       setTimeout(() => {
@@ -193,9 +194,9 @@ export function AuthForm() {
       toast.error(result.error);
       setIsLoading(false);
     } else {
-      toast.success("Check your email to confirm your account");
+      setSignupEmail(data.email);
+      setSignupSuccess(true);
       setIsLoading(false);
-      setActiveTab("login");
     }
   }
 
@@ -274,6 +275,66 @@ export function AuthForm() {
       <div className="w-full max-w-md mx-auto">
         <div>
           <Card className="border-muted/40 shadow-2xl backdrop-blur-sm bg-background/80">
+            {signupSuccess ? (
+              <>
+                <CardHeader className="space-y-1 pb-2">
+                  <div
+                    style={{
+                      animation: "auth-confirm-in 0.45s cubic-bezier(0.2, 0, 0, 1) both",
+                    }}
+                    className="flex flex-col items-center gap-4 py-4"
+                  >
+                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/20">
+                      <Mail className="w-7 h-7 text-primary" />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <CardTitle className="text-2xl font-bold tracking-tight">
+                        Check your inbox
+                      </CardTitle>
+                      <CardDescription className="text-center text-sm leading-relaxed">
+                        We sent a confirmation link to
+                      </CardDescription>
+                      <p className="text-sm font-semibold text-foreground break-all">
+                        {signupEmail}
+                      </p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent
+                  style={{
+                    animation: "auth-confirm-in 0.55s 0.08s cubic-bezier(0.2, 0, 0, 1) both",
+                  }}
+                >
+                  <div className="rounded-xl border border-muted/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground space-y-1 text-center">
+                    <p>Click the link in the email to activate your account.</p>
+                    <p className="text-xs">Didn&apos;t get it? Check your spam folder.</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="w-full mt-4 gap-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setSignupSuccess(false);
+                      setSignupEmail("");
+                      setActiveTab("login");
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Login
+                  </Button>
+                </CardContent>
+                <CardFooter className="justify-center text-xs text-muted-foreground">
+                  <Lock className="w-3 h-3 mr-1" />
+                  End-to-end encrypted environment
+                </CardFooter>
+                <style>{`
+                  @keyframes auth-confirm-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                  }
+                `}</style>
+              </>
+            ) : (
+              <>
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-bold tracking-tight text-center">
                 Welcome back
@@ -283,6 +344,44 @@ export function AuthForm() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {emailConfirmed && (
+                <div
+                  style={{
+                    animation: "auth-confirm-in 0.4s cubic-bezier(0.2, 0, 0, 1) both",
+                  }}
+                  className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3"
+                >
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+                    <svg
+                      className="h-3 w-3 text-emerald-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                      Email confirmed!
+                    </p>
+                    <p className="text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-0.5">
+                      Your account is ready. Sign in below.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Dismiss"
+                    onClick={() => setEmailConfirmed(false)}
+                    className="mt-0.5 shrink-0 text-emerald-500/60 hover:text-emerald-500 transition-colors"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
@@ -321,7 +420,7 @@ export function AuthForm() {
                         d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
                       ></path>
                     </svg>
-                    Sign in with Google
+                    {activeTab === "login" ? "Sign in" : "Sign up"} with Google
                   </Button>
                 </form>
                 <form action={onGithubSignIn} className="mb-4">
@@ -347,10 +446,11 @@ export function AuthForm() {
                     >
                       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8" />
                     </svg>
-                    Sign in with GitHub
+                    {activeTab === "login" ? "Sign in" : "Sign up"} with GitHub
                   </Button>
                 </form>
 
+                {activeTab === "login" && (
                 <div className="mb-4">
                   <Button
                     type="button"
@@ -373,6 +473,7 @@ export function AuthForm() {
                     )}
                   </Button>
                 </div>
+                )}
 
                 <div className="relative mb-4">
                   <div className="absolute inset-0 flex items-center">
@@ -502,6 +603,8 @@ export function AuthForm() {
               <Lock className="w-3 h-3 mr-1" />
               End-to-end encrypted environment
             </CardFooter>
+              </>
+            )}
           </Card>
         </div>
       </div>
