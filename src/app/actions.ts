@@ -214,6 +214,145 @@ export async function signInWithGithub(formData?: FormData) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Confirmation-resend guard
+// ---------------------------------------------------------------------------
+// Supabase confirmation links are valid for 24 hours (default). Resending
+// within that window wastes an email send and can confuse the user with
+// multiple competing links.
+//
+// IMPORTANT: We must check BEFORE calling auth.signUp() because Supabase
+// silently re-sends the confirmation email itself when signUp is called
+// for an unconfirmed ghost user — it never returns an error, so any guard
+// placed in the error path is never reached.
+const CONFIRMATION_LINK_TTL_MS = 24 * 60 * 60 * 1000; // 24 h
+
+async function getConfirmationStatus(email: string): Promise<{
+  userExists: boolean;
+  confirmed: boolean;
+  shouldResend: boolean;
+  sentAt: Date | null;
+}> {
+  try {
+    const admin = createAdminClient();
+    // Query auth.users directly by email using service role — O(1) instead
+    // of fetching all users and filtering client-side (which also breaks
+    // at >1000 users due to pagination).
+    const { data, error } = await admin
+      .rpc("get_user_confirmation_status", { p_email: email.toLowerCase() })
+      .single();
+
+    // If the RPC doesn’t exist yet, fall back to the safe default (allow resend).
+    if (error) {
+      // Fallback: try listing users (still better than silently failing)
+      const { data: listData, error: listError } =
+        await admin.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000,
+        });
+      if (listError || !listData?.users) {
+        return {
+          userExists: false,
+          confirmed: false,
+          shouldResend: true,
+          sentAt: null,
+        };
+      }
+      const user = listData.users.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase(),
+      );
+      if (!user)
+        return {
+          userExists: false,
+          confirmed: false,
+          shouldResend: true,
+          sentAt: null,
+        };
+      if (user.email_confirmed_at)
+        return {
+          userExists: true,
+          confirmed: true,
+          shouldResend: false,
+          sentAt: null,
+        };
+      const sentAt = user.confirmation_sent_at
+        ? new Date(user.confirmation_sent_at)
+        : null;
+      if (!sentAt)
+        return {
+          userExists: true,
+          confirmed: false,
+          shouldResend: true,
+          sentAt: null,
+        };
+      const ageMs = Date.now() - sentAt.getTime();
+      return {
+        userExists: true,
+        confirmed: false,
+        shouldResend: ageMs >= CONFIRMATION_LINK_TTL_MS,
+        sentAt,
+      };
+    }
+
+    if (!data)
+      return {
+        userExists: false,
+        confirmed: false,
+        shouldResend: true,
+        sentAt: null,
+      };
+
+    const row = data as {
+      user_exists: boolean;
+      confirmed: boolean;
+      confirmation_sent_at: string | null;
+    };
+
+    if (!row.user_exists)
+      return {
+        userExists: false,
+        confirmed: false,
+        shouldResend: true,
+        sentAt: null,
+      };
+    if (row.confirmed)
+      return {
+        userExists: true,
+        confirmed: true,
+        shouldResend: false,
+        sentAt: null,
+      };
+
+    const sentAt = row.confirmation_sent_at
+      ? new Date(row.confirmation_sent_at)
+      : null;
+    if (!sentAt)
+      return {
+        userExists: true,
+        confirmed: false,
+        shouldResend: true,
+        sentAt: null,
+      };
+
+    const ageMs = Date.now() - sentAt.getTime();
+    return {
+      userExists: true,
+      confirmed: false,
+      shouldResend: ageMs >= CONFIRMATION_LINK_TTL_MS,
+      sentAt,
+    };
+  } catch {
+    // Fail-open: if admin lookup fails, allow the resend to avoid
+    // leaving the user permanently stuck.
+    return {
+      userExists: false,
+      confirmed: false,
+      shouldResend: true,
+      sentAt: null,
+    };
+  }
+}
+
 export async function signInWithPassword(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -235,12 +374,41 @@ export async function signInWithPassword(formData: FormData) {
 
   if (error) {
     if (error.message.toLowerCase().includes("email not confirmed")) {
-      return {
-        error:
-          "Please verify your email before signing in. Check your inbox for a confirmation link.",
-      };
+      const headersList = await headers();
+      const origin = resolveAuthBaseUrl(headersList);
+      const { shouldResend, sentAt } = await getConfirmationStatus(email);
+
+      if (shouldResend) {
+        // Link has expired — send a fresh one.
+        await supabase.auth.resend({
+          type: "signup",
+          email,
+          options: { emailRedirectTo: `${origin}/auth/callback` },
+        });
+        return {
+          error:
+            "Your email hasn't been confirmed yet. We've sent you a new confirmation link — check your inbox.",
+        };
+      } else {
+        // Link is still live — no need to send another.
+        const expiresAt = sentAt
+          ? new Date(sentAt.getTime() + CONFIRMATION_LINK_TTL_MS)
+          : null;
+        const timeLeft = expiresAt
+          ? Math.ceil((expiresAt.getTime() - Date.now()) / (60 * 60 * 1000))
+          : null;
+        return {
+          error:
+            timeLeft && timeLeft > 0
+              ? `Your confirmation link is still active for ~${timeLeft}h. Check your inbox (or spam folder).`
+              : "Your email hasn't been confirmed yet. Check your inbox for a confirmation link.",
+        };
+      }
     }
-    return { error: "Invalid email or password. If you haven't created an account yet, please sign up." };
+    return {
+      error:
+        "Invalid email or password. If you haven't created an account yet, please sign up.",
+    };
   }
 
   if (next && next.startsWith("/")) {
@@ -264,6 +432,47 @@ export async function signUp(formData: FormData) {
     return { error: "Too many requests. Please try again later." };
   }
 
+  // Pre-check BEFORE calling auth.signUp().
+  // Supabase silently re-sends the confirmation email when signUp is
+  // called for an unconfirmed ghost user — it never errors — so any
+  // guard in the error path is never reached. We intercept here instead.
+  const status = await getConfirmationStatus(email);
+
+  // Already-confirmed account — redirect them to sign in.
+  if (status.userExists && status.confirmed) {
+    return {
+      error:
+        "An account with this email already exists. Please sign in instead.",
+    };
+  }
+
+  if (status.userExists && !status.confirmed) {
+    if (!status.shouldResend) {
+      // Link is still live — return early without touching Supabase at all.
+      const expiresAt = status.sentAt
+        ? new Date(status.sentAt.getTime() + CONFIRMATION_LINK_TTL_MS)
+        : null;
+      const timeLeft = expiresAt
+        ? Math.ceil((expiresAt.getTime() - Date.now()) / (60 * 60 * 1000))
+        : null;
+      return {
+        success: true,
+        existingLink: true,
+        timeLeftHours: timeLeft ?? 24,
+      };
+    }
+
+    // Link has expired — use targeted resend() instead of signUp().
+    // This sends a fresh link without creating a duplicate identity.
+    await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${origin}/auth/callback` },
+    });
+    return { success: true };
+  }
+
+  // Genuinely new user — proceed with normal signup.
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -344,10 +553,11 @@ export async function deleteAccountAction(userTimezone?: string | null) {
 export async function forgotPassword(formData: FormData) {
   const email = formData.get("email") as string;
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const headersList = await headers();
+  const origin = resolveAuthBaseUrl(headersList);
 
   // Rate Limiting
-  const ip = (await headers()).get("x-forwarded-for") || "unknown";
+  const ip = headersList.get("x-forwarded-for") || "unknown";
   const { success: rateLimitSuccess } = await authRateLimit.limit(ip);
   if (!rateLimitSuccess) {
     return { error: "Too many requests. Please try again later." };

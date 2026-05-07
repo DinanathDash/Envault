@@ -58,8 +58,7 @@ export function UpdatePasswordForm() {
       toast.error(result.error);
       setIsLoading(false);
     } else {
-      toast.success("Password updated successfully");
-      pushWithTransition(router, "/login", "nav-back");
+      pushWithTransition(router, "/login?passwordUpdated=true", "nav-back");
     }
   }
 
