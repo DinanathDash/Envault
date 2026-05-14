@@ -1,0 +1,24 @@
+name: Enhancement
+description: Suggest an improvement to an existing feature.
+labels: ["enhancement"]
+assignees:
+  - DinanathDash
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an enhancement to Envault!
+  - type: textarea
+    id: improvement
+    attributes:
+      label: What feature needs improvement?
+      description: Describe the existing feature and the current pain point.
+    validations:
+      required: true
+  - type: textarea
+    id: how_to_improve
+    attributes:
+      label: How should it be improved?
+      description: Describe your suggested enhancement and how it improves the user experience.
+    validations:
+      required: true

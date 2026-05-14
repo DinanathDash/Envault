@@ -1,0 +1,24 @@
+name: Documentation Update
+description: Improvements or additions to documentation.
+labels: ["documentation"]
+assignees:
+  - DinanathDash
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us improve our documentation!
+  - type: textarea
+    id: part
+    attributes:
+      label: Which part of the documentation needs updating?
+      description: Specify the file, section, or page that needs improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: changes
+    attributes:
+      label: What is the suggested change?
+      description: Describe what needs to be added, removed, or modified.
+    validations:
+      required: true
