@@ -134,6 +134,8 @@
   --duration-exit: 150ms;
   --duration-enter: 210ms;
   --duration-move: 400ms;
+  --code: oklch(0.985 0 0);
+  --code-foreground: oklch(0.141 0.005 285.823);
 }
 
 @keyframes fade {
@@ -266,10 +268,17 @@
     0.9915 68.74%,
     1 100%
   );
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
 }
 
 html,
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  --code: oklch(0.21 0.006 285.885);
+  --code-foreground: oklch(0.985 0 0);
 }

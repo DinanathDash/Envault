@@ -1,68 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { Terminal, Clipboard, Check } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { CodeBlockCommand } from "@/components/code-block-command";
 
-export function InstallTerminal({
-  command,
-  label,
-}: {
-  command: string;
-  label: string;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(command);
-    toast.success("Command copied to clipboard");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+// --- ENVAULT INSTALLER WRAPPER ---
+export function EnvaultInstaller() {
   return (
-    <TooltipProvider>
-      <div className="border border-primary/20 bg-background/50 backdrop-blur-sm rounded-none overflow-hidden">
-        <div className="bg-primary text-primary-foreground px-4 py-2 font-mono text-xs flex items-center justify-between">
-          <span>[{label.toUpperCase()}]</span>
-          <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={copyToClipboard}
-                  className="text-primary-foreground/60 hover:text-primary-foreground transition-colors"
-                  aria-label="Copy command"
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Clipboard className="w-4 h-4" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Copy and run this command</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-        <div className="p-4 font-mono text-sm space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground/60">$</span>
-            <span className="text-foreground break-all">{command}</span>
-          </div>
-          <div className="text-muted-foreground/60 text-xs mt-2">
-            {`>> INSTALL | SECURE | READY`}
-          </div>
-        </div>
+    <div className="w-full max-w-2xl border border-zinc-200 dark:border-zinc-800 rounded-none shadow-sm overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+      <div className="bg-zinc-900 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 font-mono text-xs flex items-center justify-between border-b border-zinc-800 dark:border-zinc-200">
+        <span className="font-bold tracking-tight">[UNIVERSAL INSTALLER]</span>
+        <div className="text-zinc-500 dark:text-zinc-400 text-[10px] font-semibold">ENVAULT CLI</div>
       </div>
-    </TooltipProvider>
+      <CodeBlockCommand
+        script="curl -fsSL https://raw.githubusercontent.com/DinanathDash/Envault/main/install.sh | sh"
+        brew="brew tap DinanathDash/envault && brew install --formula envault"
+        npm="npm install -g envault"
+      />
+    </div>
   );
 }
+
+export default EnvaultInstaller;
