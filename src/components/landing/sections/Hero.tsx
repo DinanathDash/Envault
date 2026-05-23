@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Timer, ArrowRight, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InstallTerminal } from "@/components/landing/ui/install-terminal";
+import { EnvaultInstaller } from "@/components/landing/ui/install-terminal";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
 export function Hero() {
   return (
@@ -33,49 +33,7 @@ export function Hero() {
 
           {/* Tabbed Installation UI */}
           <div className="w-full max-w-sm md:max-w-lg">
-            <Tabs defaultValue="script" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-background/50 backdrop-blur-sm border border-primary/20 rounded-none h-auto p-1">
-                <TabsTrigger
-                  value="script"
-                  className="font-mono text-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  SCRIPT
-                </TabsTrigger>
-                <TabsTrigger
-                  value="brew"
-                  className="font-mono text-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  BREW
-                </TabsTrigger>
-                <TabsTrigger
-                  value="npm"
-                  className="font-mono text-xs rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  NPM
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="script" className="mt-0">
-                <InstallTerminal
-                  command="curl -fsSL https://raw.githubusercontent.com/DinanathDash/Envault/main/install.sh | sh"
-                  label="Universal Installer"
-                />
-              </TabsContent>
-
-              <TabsContent value="brew" className="mt-0">
-                <InstallTerminal
-                  command="brew tap DinanathDash/envault && brew install --formula envault"
-                  label="Homebrew (Formula)"
-                />
-              </TabsContent>
-
-              <TabsContent value="npm" className="mt-0">
-                <InstallTerminal
-                  command="npm install -g @dinanathdash/envault"
-                  label="NPM"
-                />
-              </TabsContent>
-            </Tabs>
+            <EnvaultInstaller />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
