@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Timer, ArrowRight, Wrench } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnvaultInstaller } from "@/components/landing/ui/install-terminal";
 import { SlideUp } from "@/components/landing/animations/SlideUp";
+
 export function Hero() {
   return (
     <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden pt-24 pb-12">

@@ -1,7 +1,5 @@
 import { execFileSync, execSync } from "child_process";
-import { existsSync, readFileSync } from "node:fs";
 import crypto from "node:crypto";
-import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { SDK_VERSION } from "./version";
 
@@ -55,16 +53,19 @@ export class EnvaultAgentClient {
   }
 
   private resolveProjectIdFromEnvaultJson(): string | null {
-    const configPath = path.join(
-      /*turbopackIgnore: true*/ process.cwd(),
-      "envault.json",
-    );
-    if (!existsSync(configPath)) {
-      return null;
-    }
-
     try {
-      const parsed = JSON.parse(readFileSync(configPath, "utf-8")) as {
+      // Use new Function to completely hide the fs import from Vercel NFT/Turbopack
+      const getFs = new Function("return require('node:fs')");
+      const fs = getFs();
+
+      // Use new Function to completely hide the cwd evaluation from Vercel NFT/Turbopack
+      const getCwd = new Function("return process.cwd()");
+      const configPath = getCwd() + "/envault.json";
+      if (!fs.existsSync(configPath)) {
+        return null;
+      }
+
+      const parsed = JSON.parse(fs.readFileSync(configPath, "utf-8")) as {
         projectId?: unknown;
       };
       if (
@@ -376,12 +377,18 @@ export class EnvaultAgentClient {
   }
 
   private resolveNotificationIconPath(): string | null {
-    const candidate = path.join(
-      /*turbopackIgnore: true*/ process.cwd(),
-      "public",
-      "favicon.png",
-    );
-    return existsSync(candidate) ? candidate : null;
+    try {
+      // Use new Function to completely hide the fs import from Vercel NFT/Turbopack
+      const getFs = new Function("return require('node:fs')");
+      const fs = getFs();
+
+      // Use new Function to completely hide the cwd evaluation from Vercel NFT/Turbopack
+      const getCwd = new Function("return process.cwd()");
+      const candidate = getCwd() + "/public/favicon.png";
+      return fs.existsSync(candidate) ? candidate : null;
+    } catch {
+      return null;
+    }
   }
 
   private resolveTerminalNotifierPath(): string | null {
@@ -390,10 +397,17 @@ export class EnvaultAgentClient {
       "/usr/local/bin/terminal-notifier",
     ];
 
-    for (const candidate of candidates) {
-      if (existsSync(candidate)) {
-        return candidate;
+    try {
+      const getFs = new Function("return require('node:fs')");
+      const fs = getFs();
+
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+          return candidate;
+        }
       }
+    } catch {
+      // Keep fallback chain moving
     }
 
     try {

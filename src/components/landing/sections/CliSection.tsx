@@ -65,7 +65,7 @@ export async function CliSection() {
       <div className="container px-4 md:px-6">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 items-center">
           {/* Left Column: Content */}
-          <div className="space-y-4 order-2 lg:order-1">
+          <div className="space-y-4">
             <SlideUp className="space-y-4">
               <div className="inline-flex items-center space-x-2 bg-primary/10 text-primary px-3 py-1 text-sm font-medium">
                 <Terminal className="w-4 h-4" />
@@ -124,7 +124,7 @@ export async function CliSection() {
           </div>
 
           {/* Right Column: Premium Terminal visualization */}
-          <FadeIn delay={0.2} className="order-1 lg:order-2">
+          <FadeIn delay={0.2} className="">
             <AnimatedTerminal />
           </FadeIn>
         </div>

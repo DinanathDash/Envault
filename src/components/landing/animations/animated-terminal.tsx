@@ -81,10 +81,9 @@ export function AnimatedTerminal() {
       viewport={{ once: true }}
       className="relative perspective-1000"
     >
-      <motion.div
-        layout
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="relative rounded-none overflow-hidden bg-[#0c0c0c] border border-white/10 shadow-2xl z-30"
+      <div
+        className="relative rounded-none overflow-hidden bg-[#0c0c0c] border border-white/10 shadow-2xl z-30 flex flex-col"
+        style={{ height: '540px' }}
       >
         <div className="flex items-center justify-between px-4 py-3 bg-[#18181b] border-b border-white/5">
           <div className="flex items-center space-x-2">
@@ -108,10 +107,8 @@ export function AnimatedTerminal() {
           </button>
         </div>
 
-        <motion.div
-          layout
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="p-6 font-mono text-sm leading-relaxed text-white/90"
+        <div
+          className="p-6 font-mono text-sm leading-relaxed text-white/90 flex-1"
         >
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
@@ -230,8 +227,8 @@ export function AnimatedTerminal() {
               </motion.div>
             )}
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 }
