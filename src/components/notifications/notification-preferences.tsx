@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -47,7 +46,7 @@ const defaultPreferences: NotificationPreferences = {
   // Email: only access + device on by default
   email_access_requests: true,
   email_access_granted: true,
-  email_device_activity: true,
+  email_device_activity: false,
   email_security_alerts: false,
   email_project_activity: false,
   email_cli_activity: false,
@@ -63,24 +62,35 @@ const defaultPreferences: NotificationPreferences = {
   digest_frequency: "none",
 };
 
-interface ToggleRowProps {
+interface SelectRowProps {
   id: string;
   label: string;
   description?: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+  appChecked: boolean;
+  emailChecked: boolean;
+  onChange: (app: boolean, email: boolean) => void;
 }
 
-function ToggleRow({
+function SelectRow({
   id,
   label,
   description,
-  checked,
+  appChecked,
+  emailChecked,
   onChange,
-}: ToggleRowProps) {
+}: SelectRowProps) {
+  const value =
+    appChecked && emailChecked
+      ? "both"
+      : appChecked
+      ? "app"
+      : emailChecked
+      ? "email"
+      : "none";
+
   return (
-    <div className="flex items-start justify-between gap-4 py-1">
-      <div className="space-y-0.5">
+    <div className="flex items-start justify-between gap-4 py-1.5">
+      <div className="space-y-1">
         <Label htmlFor={id} className="text-sm font-medium leading-none">
           {label}
         </Label>
@@ -88,7 +98,25 @@ function ToggleRow({
           <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </div>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+      <Select
+        value={value}
+        onValueChange={(val) => {
+          onChange(
+            val === "both" || val === "app",
+            val === "both" || val === "email",
+          );
+        }}
+      >
+        <SelectTrigger id={id} className="w-[140px] h-8 shrink-0">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">Off</SelectItem>
+          <SelectItem value="app">In-App Only</SelectItem>
+          <SelectItem value="email">Email Only</SelectItem>
+          <SelectItem value="both">Both</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -180,136 +208,143 @@ export function NotificationPreferences() {
 
   const modKey = getModifierKey("mod");
 
-  const set = <K extends keyof NotificationPreferences>(
-    key: K,
-    value: NotificationPreferences[K],
-  ) => setPreferences((prev) => ({ ...prev, [key]: value }));
+  const setCategory = (
+    appKey: keyof NotificationPreferences,
+    emailKey: keyof NotificationPreferences,
+    appValue: boolean,
+    emailValue: boolean,
+  ) => {
+    setPreferences((prev) => ({
+      ...prev,
+      [appKey]: appValue,
+      [emailKey]: emailValue,
+    }));
+  };
+
+  const setDigest = (value: "none" | "daily" | "weekly") => {
+    setPreferences((prev) => ({ ...prev, digest_frequency: value }));
+  };
 
   if (isLoading) return <PreferencesSkeleton />;
 
   return (
     <div className="space-y-6">
-      {/* Email Notifications */}
       <Card>
         <CardHeader>
-          <CardTitle>Email Notifications</CardTitle>
-          <CardDescription>Choose what you receive via email</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <ToggleRow
-            id="email-access-requests"
-            label="Access Requests"
-            description="When someone requests access to your project"
-            checked={preferences.email_access_requests}
-            onChange={(v) => set("email_access_requests", v)}
-          />
-          <ToggleRow
-            id="email-access-granted"
-            label="Access Granted / Denied"
-            description="When your access request is approved or rejected"
-            checked={preferences.email_access_granted}
-            onChange={(v) => set("email_access_granted", v)}
-          />
-          <ToggleRow
-            id="email-device-activity"
-            label="New Device Access"
-            description="When CLI access is granted from a new device"
-            checked={preferences.email_device_activity}
-            onChange={(v) => set("email_device_activity", v)}
-          />
-          <ToggleRow
-            id="email-security-alerts"
-            label="Security Alerts"
-            description="Password changes, unknown logins, 2FA events"
-            checked={preferences.email_security_alerts}
-            onChange={(v) => set("email_security_alerts", v)}
-          />
-          <ToggleRow
-            id="email-project-activity"
-            label="Project & Secret Activity"
-            description="Secrets added/updated/deleted, project changes"
-            checked={preferences.email_project_activity}
-            onChange={(v) => set("email_project_activity", v)}
-          />
-          <ToggleRow
-            id="email-cli-activity"
-            label="CLI Activity"
-            description="Secrets pulled or pushed via the CLI"
-            checked={preferences.email_cli_activity}
-            onChange={(v) => set("email_cli_activity", v)}
-          />
-          <ToggleRow
-            id="email-system-updates"
-            label="System & Maintenance"
-            description="Platform updates, scheduled maintenance"
-            checked={preferences.email_system_updates}
-            onChange={(v) => set("email_system_updates", v)}
-          />
-        </CardContent>
-      </Card>
-
-      {/* In-App Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>In-App Notifications</CardTitle>
+          <CardTitle>Notifications</CardTitle>
           <CardDescription>
-            Choose what appears in the notification bell
+            Choose how you receive different types of notifications
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <ToggleRow
-            id="app-access-requests"
+        <CardContent className="space-y-4">
+          <SelectRow
+            id="pref-access-requests"
             label="Access Requests"
             description="When someone requests access to your project"
-            checked={preferences.app_access_requests}
-            onChange={(v) => set("app_access_requests", v)}
+            appChecked={preferences.app_access_requests}
+            emailChecked={preferences.email_access_requests}
+            onChange={(app, email) =>
+              setCategory(
+                "app_access_requests",
+                "email_access_requests",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-access-granted"
+          <SelectRow
+            id="pref-access-granted"
             label="Access Granted / Denied"
             description="Approvals, rejections, role changes, invitations"
-            checked={preferences.app_access_granted}
-            onChange={(v) => set("app_access_granted", v)}
+            appChecked={preferences.app_access_granted}
+            emailChecked={preferences.email_access_granted}
+            onChange={(app, email) =>
+              setCategory(
+                "app_access_granted",
+                "email_access_granted",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-device-activity"
+          <SelectRow
+            id="pref-device-activity"
             label="New Device Access"
             description="New CLI devices and unknown logins"
-            checked={preferences.app_device_activity}
-            onChange={(v) => set("app_device_activity", v)}
+            appChecked={preferences.app_device_activity}
+            emailChecked={preferences.email_device_activity}
+            onChange={(app, email) =>
+              setCategory(
+                "app_device_activity",
+                "email_device_activity",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-security-alerts"
+          <SelectRow
+            id="pref-security-alerts"
             label="Security Alerts"
             description="Password changes, 2FA events, encryption failures"
-            checked={preferences.app_security_alerts}
-            onChange={(v) => set("app_security_alerts", v)}
+            appChecked={preferences.app_security_alerts}
+            emailChecked={preferences.email_security_alerts}
+            onChange={(app, email) =>
+              setCategory(
+                "app_security_alerts",
+                "email_security_alerts",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-project-activity"
+          <SelectRow
+            id="pref-project-activity"
             label="Project & Secret Activity"
             description="Secrets and project changes by team members"
-            checked={preferences.app_project_activity}
-            onChange={(v) => set("app_project_activity", v)}
+            appChecked={preferences.app_project_activity}
+            emailChecked={preferences.email_project_activity}
+            onChange={(app, email) =>
+              setCategory(
+                "app_project_activity",
+                "email_project_activity",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-cli-activity"
+          <SelectRow
+            id="pref-cli-activity"
             label="CLI Activity"
             description="Secrets pulled or pushed via the CLI"
-            checked={preferences.app_cli_activity}
-            onChange={(v) => set("app_cli_activity", v)}
+            appChecked={preferences.app_cli_activity}
+            emailChecked={preferences.email_cli_activity}
+            onChange={(app, email) =>
+              setCategory(
+                "app_cli_activity",
+                "email_cli_activity",
+                app,
+                email,
+              )
+            }
           />
-          <ToggleRow
-            id="app-system-updates"
+          <SelectRow
+            id="pref-system-updates"
             label="System & Maintenance"
             description="Platform updates and scheduled maintenance windows"
-            checked={preferences.app_system_updates}
-            onChange={(v) => set("app_system_updates", v)}
+            appChecked={preferences.app_system_updates}
+            emailChecked={preferences.email_system_updates}
+            onChange={(app, email) =>
+              setCategory(
+                "app_system_updates",
+                "email_system_updates",
+                app,
+                email,
+              )
+            }
           />
         </CardContent>
       </Card>
 
-      {/* Email Digest */}
       <Card>
         <CardHeader>
           <CardTitle>Email Digest</CardTitle>
@@ -322,9 +357,7 @@ export function NotificationPreferences() {
             <Label htmlFor="digest-frequency">Frequency</Label>
             <Select
               value={preferences.digest_frequency}
-              onValueChange={(value: "none" | "daily" | "weekly") =>
-                set("digest_frequency", value)
-              }
+              onValueChange={setDigest}
             >
               <SelectTrigger id="digest-frequency" className="w-[180px]">
                 <SelectValue placeholder="Select frequency" />
