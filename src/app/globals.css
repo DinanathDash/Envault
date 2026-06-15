@@ -64,6 +64,14 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  button,
+  [role="button"],
+  [type="button"],
+  [type="reset"],
+  [type="submit"] {
+    @apply cursor-pointer;
+  }
 }
 
 /* User-defined native theme clip from Top Right */
