@@ -10,6 +10,25 @@ All notable changes to Envault are documented here.
 
 ---
 
+## 1.15.0 - 2026-06-16
+
+> Authors: Dinanath Dash (DinanathDash), Rajat Patra (RawJat)
+
+Notification Settings Refactor, UI Component Streamlining, and Security Patches.
+
+### UI & User Experience
+
+- **Button Cursor Restoration:** Added a global CSS rule to restore the standard `pointer` cursor to all button elements and Radix primitives (like Tabs), overriding Tailwind v4 defaults.
+- **Notification Settings:** Refactored notification settings into a unified, select-based interface for managing both app and email preferences.
+- **Component Streamlining:** Streamlined UI components and integrated `simple-icons` for cleaner SVG rendering across the app.
+
+### Security & Infrastructure
+
+- **Dependency Security Updates:** Updated `mermaid` to 10.9.6 and applied dependency overrides for critical `uuid` security patches.
+- **SDK Hardening:** Sanitized file system access in the SDK to improve build stability and overall platform compatibility.
+
+---
+
 ## 1.14.3 - 2026-05-07
 
 > Authors: Dinanath Dash (DinanathDash)
